@@ -1,9 +1,9 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 1/17/17
+ * Revised: 1/19/17
  * Description: Main and helper functions
- * for fact-checking program pop-up.
+ * for fact-checking program pop-up (UI logic).
  */
 
 var parsedData;
@@ -21,7 +21,7 @@ chrome.tabs.query({active:true,currentWindow:true},function(tabArray) {
 document.addEventListener('DOMContentLoaded', function () {
     var bg = chrome.extension.getBackgroundPage();
     if(bg) {
-      parsedData = bg.bigData;
+      parsedData = bg.factoids;
       keyWords = bg.keyWords;
       factPct = bg.num / bg.den;
     }
@@ -31,7 +31,7 @@ function degreesToRadians(degrees) {
     return (degrees * Math.PI) / 180;
 }
 
-function drawPieChart(data) {
+function drawPieChart() {
     var canvas = document.getElementById("myCanvas");
     var ctx = canvas.getContext("2d");
     var centerX = Math.floor(canvas.width / 2);
@@ -42,7 +42,7 @@ function drawPieChart(data) {
     var percentage = factPct;
     var startingAngle = Math.PI * 1.5;
     var arcSize = degreesToRadians(percentage * 360); // Multiply % by 360 degrees for proportion of circle.
-    if(arcSize === 0) arcSize = 0.000001;
+    if(arcSize <= 0) arcSize = 0.000001;
     var endingAngle = startingAngle + arcSize;
 
     ctx.lineWidth = 20;
@@ -97,9 +97,9 @@ function drawPieChart(data) {
 // Return results in a descriptive UI.
 window.onload = function displayChart() {
     if(parsedData) {
+      document.getElementById("fact_text").innerHTML = "Factoids Checked:";
       document.getElementById("fact_num").innerHTML = parsedData.length.toLocaleString();
-      document.getElementById("fact_text").innerHTML = " Factoids Checked:";
-      drawPieChart(parsedData.length);
+      drawPieChart();
     }
     else {
       document.getElementById("fact_text").style.color="#E74C3C";

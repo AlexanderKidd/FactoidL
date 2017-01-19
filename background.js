@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 1/17/17
+ * Revised: 1/18/17
  * Description: Background page worker script.  Will
  * do most of the fact-checking tasks and pass it to popup.js.
  *
@@ -11,16 +11,19 @@
  * using JavaScript files alone, like this:" -Google, 2015.
  */
 
-// Visual text to analyze, as well as keywords for search query.
-var bigData;
-var keyWords;
-var factoidsPct;
-var num = 0;
-var den = 0;
+var bigData; // Visual text on the page to analyze.
+var keyWords; // Used for Google search function on popup.html.
+var factoids; // bigData scrape AFTER parsing.
+var num = 0; // Numerator of factoids that are "accurate" (truthful).
+var den = 0; // Denominator of total factoids checked.
 
-// Parse data into "factoids" (substrings based on keywords/frequency of phrases).
+/*
+ * Parse data into "factoids" (Statements that may or may not be correct).
+ * The "11" in Regex was decided on since most sentences under eleven characters
+ * are not worth checking or are not complete sentences.
+ */
 function parse() {
-    return bigData.split(/[\r\t\n\.\?!]+/);
+  return bigData.match(/[A-Z0-9][^.!?]{11,}[.!?\n]/g);
 }
 
 /*
@@ -29,21 +32,12 @@ function parse() {
  * http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryClass=thing&QueryString=stringsHere
  */
 function countRelevanceOfDataComparedToOther(factoids) {
-    for(i = 0; i < factoids.length; i++) {
-      checkResultNodes(factoids[i], pctCalc);
+    if(factoids !== null) {
+      for(i = 0; i < factoids.length; i++) {
+        checkResultNodes(factoids[i], pctCalc);
+      }
     }
-    return num / den;
 }
-
-/*
- * Callback to calculate percentage when analysis from DB returns in checkResultNodes().
- */
-var pctCalc = function(returned_data) {
-  if(returned_data == 1) {
-    num++;
-  }
-  den++;
-};
 
 /*
  * A helper function.  DBPedia lookup returns an array of result nodes.
@@ -70,12 +64,24 @@ function checkResultNodes(factoid, callback) {
 }
 
 /*
+ * Callback to calculate percentage when analysis from DB returns in checkResultNodes().
+ */
+var pctCalc = function(returned_data) {
+  if(returned_data == 1) {
+    num++;
+  }
+  den++;
+};
+
+/*
  * This listens for a message, specifically pulling from the content.js scrape.
  */
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
+      num = 0;
+      den = 0;
       bigData = request.data;
       keyWords = request.tags;
-      var factoids = parse();
+      factoids = parse();
       countRelevanceOfDataComparedToOther(factoids);
 });
