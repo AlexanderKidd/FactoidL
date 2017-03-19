@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 1/18/17
+ * Revised: 3/14/17
  * Description: Background page worker script.  Will
  * do most of the fact-checking tasks and pass it to popup.js.
  *
@@ -20,10 +20,12 @@ var den = 0; // Denominator of total factoids checked.
 /*
  * Parse data into "factoids" (Statements that may or may not be correct).
  * The "11" in Regex was decided on since most sentences under eleven characters
- * are not worth checking or are not complete sentences.
+ * are not worth checking or are not complete sentences.  "2000" is a generous
+ * max character limit: we are checking sentences/statements here, not Finnegan's Wake.
+ * Also, strip out excessive whitespace.  DBPedia seems to take ~4,000 characters max.
  */
 function parse() {
-  return bigData.match(/[A-Z0-9][^.!?]{11,}[.!?\n]/g);
+  return bigData.replace(/\n|\s{2,}/g, ' ').match(/[A-Z0-9][^.!?]{11,2000}[.!?\n]/g);
 }
 
 /*
@@ -32,11 +34,11 @@ function parse() {
  * http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryClass=thing&QueryString=stringsHere
  */
 function countRelevanceOfDataComparedToOther(factoids) {
-    if(factoids !== null) {
-      for(i = 0; i < factoids.length; i++) {
-        checkResultNodes(factoids[i], pctCalc);
-      }
+  if(factoids !== null) {
+    for(i = 0; i < factoids.length; i++) {
+      checkResultNodes(factoids[i], pctCalc);
     }
+  }
 }
 
 /*
@@ -50,15 +52,15 @@ function checkResultNodes(factoid, callback) {
     dataType: "xml",
     aync: false,
     success: function (xml) {
-        // Just turn it into an object...no need to try to parse again...
-        $xml = $(xml);
+      // Just turn it into an object...no need to try to parse again...
+      $xml = $(xml);
 
-        if($xml.find("*").children().length > 0) {
-          callback.call(this, 1);
-        }
-        else {
-          callback.call(this, 0);
-        }
+      if($xml.find("*").children().length > 0) {
+        callback.call(this, 1);
+      }
+      else {
+        callback.call(this, 0);
+      }
     }
   });
 }
@@ -78,10 +80,10 @@ var pctCalc = function(returned_data) {
  */
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-      num = 0;
-      den = 0;
-      bigData = request.data;
-      keyWords = request.tags;
-      factoids = parse();
-      countRelevanceOfDataComparedToOther(factoids);
+    num = 0;
+    den = 0;
+    bigData = request.data;
+    keyWords = request.tags;
+    factoids = parse();
+    countRelevanceOfDataComparedToOther(factoids);
 });

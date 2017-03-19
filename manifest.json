@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 1/16/17
+ * Revised: 3/16/17
  * Description: Chrome js manifest file.
  * Responsible for security concerns and misc. metadata.
  */
@@ -24,7 +24,8 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["jquery-1.11.3.min.js", "content.js"]
+      "js": ["jquery-1.11.3.min.js", "content.js"],
+      "run_at": "document_end"
     }
   ],
 

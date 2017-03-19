@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 1/19/17
+ * Revised: 3/19/17
  * Description: Main and helper functions
  * for fact-checking program pop-up (UI logic).
  */
@@ -10,22 +10,18 @@ var parsedData;
 var keyWords;
 var factPct = -1;
 
-chrome.tabs.query({active:true,currentWindow:true},function(tabArray) {
-    chrome.tabs.executeScript(tabArray[0].id, {file: "content.js"});
-});
-
-/*
- * Event listener that will check when the page has been loaded (not fully).
- * It then pulls the results of scraping the page and analysis of the factoids into local vars.
- */
-document.addEventListener('DOMContentLoaded', function () {
-    var bg = chrome.extension.getBackgroundPage();
-    if(bg) {
-      parsedData = bg.factoids;
-      keyWords = bg.keyWords;
-      factPct = bg.num / bg.den;
+function pollFactData() {
+  var bg = chrome.extension.getBackgroundPage();
+  if(bg) {
+    parsedData = bg.factoids;
+    keyWords = bg.keyWords;
+    if(bg.factoids) {
+      if(bg.factoids.length == bg.den) {
+        factPct = bg.num / bg.den;
+      }
     }
-});
+  }
+}
 
 function degreesToRadians(degrees) {
     return (degrees * Math.PI) / 180;
@@ -34,6 +30,7 @@ function degreesToRadians(degrees) {
 function drawPieChart() {
     var canvas = document.getElementById("myCanvas");
     var ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     var centerX = Math.floor(canvas.width / 2);
     var centerY = Math.floor(canvas.height / 2);
     var radius = Math.floor(canvas.width / 3);
@@ -84,6 +81,7 @@ function drawPieChart() {
 
     if(percentage == -1 || isNaN(percentage)) {
       ctx.font = "bold 30px Arial";
+      ctx.fillStyle = "#000000";
       ctx.fillText("Loading...", centerX, centerY + 15);
     }
     else {
@@ -94,16 +92,25 @@ function drawPieChart() {
     }
 }
 
+/*
+ * Call to scrape page content.  No validation for the page to be fully loaded.
+ */
+chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
+  chrome.tabs.executeScript(tabArray[0].id, {file: "content.js"});
+});
+
 // Return results in a descriptive UI.
 window.onload = function displayChart() {
+    document.getElementById("fact_text").style.color="#E74C3C";
+    document.getElementById("fact_text").innerHTML = "No Content Found.<br>Try Refreshing.";
+
+    pollFactData();
+
     if(parsedData) {
+      document.getElementById("fact_text").style.color="#000000";
       document.getElementById("fact_text").innerHTML = "Factoids Checked:";
       document.getElementById("fact_num").innerHTML = parsedData.length.toLocaleString();
       drawPieChart();
-    }
-    else {
-      document.getElementById("fact_text").style.color="#E74C3C";
-      document.getElementById("fact_text").innerHTML = "No Content Found.<br>Try Refreshing.";
     }
 
     var a = document.getElementById('links'); // Add/remove related links.

@@ -6,7 +6,7 @@
  * page (e.g., data collection).
  * WARNING: THIS IS LIVE SCRIPT THAT IS RUN TOP TO BOTTOM!
  */
-
+ 
 var bigData = $('p').text();
 bigData.concat(' ');
 bigData.concat($('div').text());
