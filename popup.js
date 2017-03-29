@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 3/19/17
+ * Revised: 3/28/17
  * Description: Main and helper functions
  * for fact-checking program pop-up (UI logic).
  */
@@ -9,6 +9,7 @@
 var parsedData;
 var keyWords;
 var factPct = -1;
+var listVisible = false;
 
 function pollFactData() {
   var bg = chrome.extension.getBackgroundPage();
@@ -73,7 +74,7 @@ function drawPieChart() {
       ctx.font = "50px Arial";
     }
     if(percentage < 0.1) {
-      ctx.fillStyle = "#E74C3C";
+      ctx.fillStyle = "#FF0000";
       ctx.font = "50px Arial";
     }
 
@@ -95,30 +96,61 @@ function drawPieChart() {
 /*
  * Call to scrape page content.  No validation for the page to be fully loaded.
  */
-chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
-  chrome.tabs.executeScript(tabArray[0].id, {file: "content.js"});
-});
+ chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
+   chrome.tabs.executeScript(tabArray[0].id, {file: "content.js"});
+ });
 
 // Return results in a descriptive UI.
 window.onload = function displayChart() {
-    document.getElementById("fact_text").style.color="#E74C3C";
+    document.getElementById("fact_text").style.color="#FF0000";
     document.getElementById("fact_text").innerHTML = "No Content Found.<br>Try Refreshing.";
 
     pollFactData();
 
+    var facts = document.getElementById('facts');
     if(parsedData) {
       document.getElementById("fact_text").style.color="#000000";
-      document.getElementById("fact_text").innerHTML = "Factoids Checked:";
+      chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
+        document.getElementById("fact_text").innerHTML = "Factoids checked at:" +
+          "<a alt=\"Link Checked\" style=\"display:block;width:200px;overflow:hidden;text-overflow:ellipsis;font-size:75%;\">" +
+          tabArray[0].url + "</a>";
+      });
       document.getElementById("fact_num").innerHTML = parsedData.length.toLocaleString();
       drawPieChart();
-    }
 
-    var a = document.getElementById('links'); // Add/remove related links.
-    if(keyWords) {
-      keyWords = keyWords.replace(/\s/g, "%20");
-      a.href = "https://www.google.com/webhp?sourceid=chrome-instant&ion=1&espv=2&es_th=1&ie=UTF-8#q=" + keyWords;
+      facts.onclick = function() {
+        var list = document.createElement('ul');
+        list.id = "genList";
+
+        if(!listVisible) {
+          for(var i = 0; i < parsedData.length; i++) {
+            var factItem = document.createElement('li');
+            factItem.appendChild(document.createTextNode(parsedData[i]));
+            list.appendChild(factItem);
+          }
+
+          document.getElementById('factList').appendChild(list);
+          listVisible = true;
+        }
+        else {
+          document.getElementById('factList').innerHTML = "";
+          listVisible = false;
+        }
+
+        return false;
+      };
     }
     else {
-      a.parentNode.removeChild(a);
+      facts.parentNode.removeChild(facts);
+    }
+
+    // Add or hide a search link to Google.
+    var linkSearch = document.getElementById('links');
+    if(keyWords) {
+      keyWords = keyWords.replace(/\s/g, "%20");
+      linkSearch.href = "https://www.google.com/webhp?sourceid=chrome-instant&ion=1&espv=2&es_th=1&ie=UTF-8#q=" + keyWords;
+    }
+    else {
+      linkSearch.parentNode.removeChild(a);
     }
 };
