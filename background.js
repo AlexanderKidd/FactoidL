@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 3/14/17
+ * Revised: 4/1/17
  * Description: Background page worker script.  Will
  * do most of the fact-checking tasks and pass it to popup.js.
  *
@@ -16,6 +16,7 @@ var keyWords; // Used for Google search function on popup.html.
 var factoids; // bigData scrape AFTER parsing.
 var num = 0; // Numerator of factoids that are "accurate" (truthful).
 var den = 0; // Denominator of total factoids checked.
+var url = "";
 
 /*
  * Parse data into "factoids" (Statements that may or may not be correct).
@@ -80,10 +81,13 @@ var pctCalc = function(returned_data) {
  */
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
+    if(request.url != url) {
+    url = request.url;
     num = 0;
     den = 0;
     bigData = request.data;
     keyWords = request.tags;
     factoids = parse();
     countRelevanceOfDataComparedToOther(factoids);
+  }
 });

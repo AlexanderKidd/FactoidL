@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 3/28/17
+ * Revised: 4/1/17
  * Description: Main and helper functions
  * for fact-checking program pop-up (UI logic).
  */
@@ -11,6 +11,7 @@ var keyWords;
 var factPct = -1;
 var listVisible = false;
 
+// Currently, data is being pulled once per popup window load from background.js
 function pollFactData() {
   var bg = chrome.extension.getBackgroundPage();
   if(bg) {
@@ -110,14 +111,18 @@ window.onload = function displayChart() {
     var facts = document.getElementById('facts');
     if(parsedData) {
       document.getElementById("fact_text").style.color="#000000";
+
+      // Indicate the link of the page being analyzed.
       chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
         document.getElementById("fact_text").innerHTML = "Factoids checked at:" +
           "<a alt=\"Link Checked\" style=\"display:block;width:200px;overflow:hidden;text-overflow:ellipsis;font-size:75%;\">" +
           tabArray[0].url + "</a>";
       });
+
       document.getElementById("fact_num").innerHTML = parsedData.length.toLocaleString();
       drawPieChart();
 
+      // Generate a list of facts so the user knows what was checked and what to disregard.
       facts.onclick = function() {
         var list = document.createElement('ul');
         list.id = "genList";
@@ -151,6 +156,6 @@ window.onload = function displayChart() {
       linkSearch.href = "https://www.google.com/webhp?sourceid=chrome-instant&ion=1&espv=2&es_th=1&ie=UTF-8#q=" + keyWords;
     }
     else {
-      linkSearch.parentNode.removeChild(a);
+      linkSearch.parentNode.removeChild(linkSearch);
     }
 };
