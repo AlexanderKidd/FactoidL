@@ -1,19 +1,19 @@
 # FactoidL
 Official Repo for FactoidL, Automated Fact-Checking Web Extension
 
-##Overview
+## Overview
 FactoidL is meant to be an open source, free to use codebase to triangulate third-party content with a select group of 
 databases (e.g., Wikipedia/DBPedia) in order to test the accuracy of the content.  Essentially, this is an open source 
 fact-checking algorithm in various formats (browser extension, mobile apps, web apps, etc.).  The mission is to make fact-checking
 open and accessible to all so they can quickly and accurately gauge how truthful the content they are reading is compared to public
 human knowledge.
 
-##How To Contribute
+## How To Contribute
 You can contact us at the official email: factoidlproject@gmail.com
 We'd love to have those interested/experienced in Natural Language Processing (NLP), like semantic search.  Currently, we are focused
 on making a Chrome extension, so AJAX experience would definitely help us!
 
-##How To Use
+## How To Use
 Normally, extensions are packed to obfuscate code and so it is condensed into a neat package for downloading from say, 
 the Chrome Web Store.  The instructions to add this extension "unpacked" are as follows:
 
