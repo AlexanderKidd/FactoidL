@@ -1,27 +1,39 @@
 <!DOCTYPE html>
 <html>
+  <!--
+       @author: Alexander Kidd
+			 Created: 1/17/16
+			 Revised: 5/30/17
+			 Description: FactoidL fact checker unit tests.
+			 Insert variations of sentences to parse into
+			 factoids and verify the correct percentage is displayed
+			 when checking this page in Chrome.
+	-->
 	<head>
 		<title>George Washington Was Cool</title>
 	</head>
 	<body>
 		<p>
-			<!-- Insert Factoid sentences to check below.
-			Currently, the first sentence will get a query result so it passes,
-			the second will not get a query result, and the third is too short to count as a factoid.
-		  Therefore, you should get 50% accuracy out of the first two sentences checked. -->
+			<!-- ######################################## -->
+			<!-- Insert Factoid sentences to check below. -->
+			<!-- ######################################## -->
+
+			<!-- Assert true, DBPedia returns results. -->
 			George Washington first.
 			<br>
+			<!-- Assert false, DBPedia does NOT returns results. -->
 			George Washington was second.
 			<br>
+			<!-- Assert false, factoid (sentence) too short. -->
 			No way.
 			<br>
+			<!-- Assert false, DBPedia does NOT returns results. -->
  			George Washington was seconds.
 			<br>
+			<!-- Assert false, DBPedia does NOT returns results. -->
 			George Washington was secon.
-			<br>
-			George Washington was first.
-			<br>
-			George Washingon was second.
+
+			<!-- Assert current percentage displayed: 1/4 checked == 25% -->
 		</p>
 	<body>
 </html>

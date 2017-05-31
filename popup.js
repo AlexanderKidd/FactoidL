@@ -115,8 +115,8 @@ window.onload = function displayChart() {
       // Indicate the link of the page being analyzed.
       chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
         document.getElementById("fact_text").innerHTML = "Factoids checked at:" +
-          "<a alt=\"Link Checked\" style=\"display:block;width:200px;overflow:hidden;text-overflow:ellipsis;font-size:75%;\">" +
-          tabArray[0].url + "</a>";
+          "<span title=\"" + tabArray[0].url + "\" style=\"display:block;width:200px;overflow:hidden;text-overflow:ellipsis;font-size:75%;\">" +
+          tabArray[0].url + "</span>";
       });
 
       document.getElementById("fact_num").innerHTML = parsedData.length.toLocaleString();

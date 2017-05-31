@@ -51,7 +51,7 @@ function checkResultNodes(factoid, callback) {
     url: "http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryClass=thing&QueryString=" +
     encodeURIComponent(factoid),
     dataType: "xml",
-    aync: false,
+    async: false,
     success: function (xml) {
       // Just turn it into an object...no need to try to parse again...
       $xml = $(xml);
