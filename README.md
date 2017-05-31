@@ -27,3 +27,6 @@ files from step 1.
 updated to simulate fact-checking a webpage) and click on the FactoidL extension icon.
 6. If an error is shown on the popup, try refreshing the page you are currently on.  Otherwise, statistics about the facts checked
 should show up on the extension popup.
+
+## Contributors
+Alexander Kidd (Lead Dev)
