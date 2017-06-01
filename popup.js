@@ -1,9 +1,9 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 4/1/17
- * Description: Main and helper functions
- * for fact-checking program pop-up (UI logic).
+ * Revised: 5/31/17
+ * Description: Main UI and helper functions
+ * for fact-checking program pop-up.
  */
 
 var parsedData;
@@ -11,7 +11,7 @@ var keyWords;
 var factPct = -1;
 var listVisible = false;
 
-// Currently, data is being pulled once per popup window load from background.js
+// Currently, data is being pulled once per popup window load from background.js script.
 function pollFactData() {
   var bg = chrome.extension.getBackgroundPage();
   if(bg) {
@@ -25,10 +25,15 @@ function pollFactData() {
   }
 }
 
+// Converts degrees to radians.
 function degreesToRadians(degrees) {
     return (degrees * Math.PI) / 180;
 }
 
+/*
+ * Responsible for some calculation and all of the logic of drawing the
+ * main statistic as a pie chart: a percentage of confirmed factoids to total factoids checked.
+ */
 function drawPieChart() {
     var canvas = document.getElementById("myCanvas");
     var ctx = canvas.getContext("2d");
@@ -95,67 +100,79 @@ function drawPieChart() {
 }
 
 /*
- * Call to scrape page content.  No validation for the page to be fully loaded.
+ * This builds the main components of the popup UI, assuming valid data has been received
+ * from the background script (e.g., not null, not a different url than currently showing).
  */
+function buildUI() {
+  var facts = document.getElementById('facts');
+  document.getElementById("fact_num").innerHTML = parsedData.length.toLocaleString();
+  document.getElementById("links").innerHTML = "<img border=\"0\" alt=\"Google Search\" src=\"search_icon_16x16.png\" width=\"16\" height=\"16\" style=\"vertical-align:-3px;\"> Related";
+  document.getElementById("facts").innerHTML = "Factoids <img border=\"0\" alt=\"Google Search\" src=\"fact_icon_16x16.png\" width=\"16\" height=\"16\" style=\"vertical-align:-3px;\">";
+
+  drawPieChart();
+
+  // Generate a list of facts so the user knows what was checked and what to disregard.
+  facts.onclick = function() {
+    var list = document.createElement('ul');
+    list.id = "genList";
+
+    if(!listVisible) {
+      for(var i = 0; i < parsedData.length; i++) {
+        var factItem = document.createElement('li');
+        factItem.appendChild(document.createTextNode(parsedData[i]));
+        list.appendChild(factItem);
+      }
+
+      document.getElementById('factList').appendChild(list);
+      listVisible = true;
+    }
+    else {
+      document.getElementById('factList').innerHTML = "";
+      listVisible = false;
+    }
+
+    return false;
+  };
+
+  var linkSearch = document.getElementById('links');
+  if(keyWords) {
+    keyWords = keyWords.replace(/\s/g, "%20");
+    linkSearch.href = "https://www.google.com/search?q=" + keyWords;
+  }
+  else {
+    linkSearch.parentNode.removeChild(linkSearch);
+  }
+}
+
+// Call to scrape page content.  No validation for the page to be fully loaded.
  chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
    chrome.tabs.executeScript(tabArray[0].id, {file: "content.js"});
  });
 
-// Return results in a descriptive UI.
-window.onload = function displayChart() {
+// When the popup window is loaded, call this function to sort out showing the UI.
+window.onload = function displayUI() {
     document.getElementById("fact_text").style.color="#FF0000";
-    document.getElementById("fact_text").innerHTML = "No Content Found.<br>Try Refreshing.";
+    document.getElementById("fact_text").innerHTML = "No content found.<br><br>Try refreshing the page.";
 
     pollFactData();
 
-    var facts = document.getElementById('facts');
     if(parsedData) {
       document.getElementById("fact_text").style.color="#000000";
 
-      // Indicate the link of the page being analyzed.
+      // Check the link of the page being analyzed.  If it matches the active tab, display results.
+      // Otherwise, you can assume the results are old (from another page, which may be confusing to the user).
       chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
-        document.getElementById("fact_text").innerHTML = "Factoids checked at:" +
-          "<span title=\"" + tabArray[0].url + "\" style=\"display:block;width:200px;overflow:hidden;text-overflow:ellipsis;font-size:75%;\">" +
+        if(chrome.extension.getBackgroundPage().url == tabArray[0].url) {
+          document.getElementById("fact_text").innerHTML = "Factoids checked at:" +
+          "<span id=\"current-link\" title=\"" + tabArray[0].url + "\" style=\"display:block;width:200px;overflow:hidden;text-overflow:ellipsis;font-size:75%;\">" +
           tabArray[0].url + "</span>";
-      });
 
-      document.getElementById("fact_num").innerHTML = parsedData.length.toLocaleString();
-      drawPieChart();
-
-      // Generate a list of facts so the user knows what was checked and what to disregard.
-      facts.onclick = function() {
-        var list = document.createElement('ul');
-        list.id = "genList";
-
-        if(!listVisible) {
-          for(var i = 0; i < parsedData.length; i++) {
-            var factItem = document.createElement('li');
-            factItem.appendChild(document.createTextNode(parsedData[i]));
-            list.appendChild(factItem);
-          }
-
-          document.getElementById('factList').appendChild(list);
-          listVisible = true;
+          buildUI();
         }
         else {
-          document.getElementById('factList').innerHTML = "";
-          listVisible = false;
+          document.getElementById("fact_text").style.color="#FF0000";
+          document.getElementById("fact_text").innerHTML = "Tab switched.<br><br>Refresh the page for a new fact check.";
         }
-
-        return false;
-      };
-    }
-    else {
-      facts.parentNode.removeChild(facts);
-    }
-
-    // Add or hide a search link to Google.
-    var linkSearch = document.getElementById('links');
-    if(keyWords) {
-      keyWords = keyWords.replace(/\s/g, "%20");
-      linkSearch.href = "https://www.google.com/webhp?sourceid=chrome-instant&ion=1&espv=2&es_th=1&ie=UTF-8#q=" + keyWords;
-    }
-    else {
-      linkSearch.parentNode.removeChild(linkSearch);
+      });
     }
 };
