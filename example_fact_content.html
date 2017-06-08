@@ -3,7 +3,7 @@
   <!--
        @author: Alexander Kidd
 			 Created: 1/17/16
-			 Revised: 5/30/17
+			 Revised: 6/7/17
 			 Description: FactoidL fact checker unit tests.
 			 Insert variations of sentences to parse into
 			 factoids and verify the correct percentage is displayed
@@ -19,19 +19,19 @@
 			<!-- ######################################## -->
 
 			<!-- Assert true, DBPedia returns results. -->
-			George Washington first.
+			George Washington was the first President.
 			<br>
 			<!-- Assert false, DBPedia does NOT returns results. -->
-			George Washington was second.
+			George Washington was a second President.
 			<br>
 			<!-- Assert false, factoid (sentence) too short. -->
 			No way.
 			<br>
 			<!-- Assert false, DBPedia does NOT returns results. -->
- 			George Washington was seconds.
+ 			George Washington was thirds.
 			<br>
 			<!-- Assert false, DBPedia does NOT returns results. -->
-			George Washington was secon.
+			George Washington was thir.
 
 			<!-- Assert current percentage displayed: 1/4 checked == 25% -->
 		</p>

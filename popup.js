@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 5/31/17
+ * Revised: 6/7/17
  * Description: Main UI and helper functions
  * for fact-checking program pop-up.
  */
@@ -155,19 +155,20 @@ window.onload = function displayUI() {
     document.getElementById("fact_text").innerHTML = "No content found.<br><br>Try refreshing the page.";
 
     pollFactData();
+    setInterval(pollFactData, 1000);
 
     if(parsedData) {
-      document.getElementById("fact_text").style.color="#000000";
-
       // Check the link of the page being analyzed.  If it matches the active tab, display results.
       // Otherwise, you can assume the results are old (from another page, which may be confusing to the user).
       chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
         if(chrome.extension.getBackgroundPage().url == tabArray[0].url) {
+          document.getElementById("fact_text").style.color="#000000";
           document.getElementById("fact_text").innerHTML = "Factoids checked at:" +
           "<span id=\"current-link\" title=\"" + tabArray[0].url + "\" style=\"display:block;width:200px;overflow:hidden;text-overflow:ellipsis;font-size:75%;\">" +
           tabArray[0].url + "</span>";
 
           buildUI();
+          setInterval(buildUI, 1000);
         }
         else {
           document.getElementById("fact_text").style.color="#FF0000";

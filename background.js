@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 4/1/17
+ * Revised: 6/7/17
  * Description: Background page worker script.  Will
  * do most of the fact-checking tasks and pass it to popup.js.
  *
@@ -19,7 +19,7 @@ var den = 0; // Denominator of total factoids checked.
 var url = "";
 
 /*
- * Parse data into "factoids" (Statements that may or may not be correct).
+ * General sentence to factoid (Statements that may or may not be correct) parser.
  * The "11" in Regex was decided on since most sentences under eleven characters
  * are not worth checking or are not complete sentences.  "2000" is a generous
  * max character limit: we are checking sentences/statements here, not Finnegan's Wake.
@@ -46,24 +46,70 @@ function countRelevanceOfDataComparedToOther(factoids) {
  * A helper function.  DBPedia lookup returns an array of result nodes.
  */
 function checkResultNodes(factoid, callback) {
+  factoidCpy = parminedesParser(factoid);
+  factoidCpy.splice(2);
   $.ajax({
     type: "GET",
     url: "http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryClass=thing&QueryString=" +
-    encodeURIComponent(factoid),
+    encodeURIComponent(factoidCpy),
     dataType: "xml",
-    async: false,
+    async: true,
     success: function (xml) {
-      // Just turn it into an object...no need to try to parse again...
-      $xml = $(xml);
-
-      if($xml.find("*").children().length > 0) {
-        callback.call(this, 1);
-      }
-      else {
-        callback.call(this, 0);
-      }
+      callback.call(this, parminedesStrategy(factoid, xml));
+    },
+    error: function () {
+      console.log("Oops.  Something went wrong with the AJAX request.");
     }
   });
+}
+
+/*
+ * First major fact-checking algorithm (strategy).
+ * Named after one of the earliest ontologists, Parminedes due
+ * to the algorithm checking based on ontology classes in DBPedia.
+ *
+ * Returns a 1 if the factoid appears to be true based on finding keywords in text.
+ * Returns a 0 if the factoid appears to be false or conflicted.
+ */
+function parminedesStrategy(factoid, xml) {
+  $xml = $(xml);
+
+  // Pare factoid down to key words.
+  factoidParsed = parminedesParser(factoid);
+
+  // Search every node recursively and check if all words are in text.
+  for(i = 0; i < $xml.find("*").children("Description").length; i++) {
+    for(j = 0; j < factoidParsed.length; j++) {
+      if($xml.find("*").children("Description").text().includes(factoidParsed[j])) {
+        if(j == factoidParsed.length - 1) return 1;
+      }
+      else {
+        break;
+      }
+    }
+  }
+
+  return 0;
+}
+
+/*
+ * The first parser used for queries and matching factoids with reference text.
+ * Meant to be paired with parminedesStrategy() as the first fact-checking algorithm.
+ * Initially, punctuation is removed and the factoid is split into a token (word) array.
+ * Then, article words are replaced, keeping key (important) words as search terms.
+ *
+ * Returns the parsed factoid string.
+ */
+function parminedesParser(factoid) {
+  factoidParsed = factoid.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(" ");
+  for(k = 0; k < factoidParsed.length; k++) {
+    factoidParsed[k] = factoidParsed[k].replace(/\b(a|an|the|this|that|these|those|some|I|we|us|you|she|her|him|it|he|they|them|and|or|nor|was|is|not|)\b/gi, "");
+  }
+  factoidParsed = factoidParsed.filter(function (item) {
+    return (item !== "");
+  });
+
+  return factoidParsed;
 }
 
 /*
@@ -82,12 +128,12 @@ var pctCalc = function(returned_data) {
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     if(request.url != url) {
-    url = request.url;
-    num = 0;
-    den = 0;
-    bigData = request.data;
-    keyWords = request.tags;
-    factoids = parse();
-    countRelevanceOfDataComparedToOther(factoids);
-  }
+      url = request.url;
+      num = 0;
+      den = 0;
+      bigData = request.data;
+      keyWords = request.tags;
+      factoids = parse();
+      countRelevanceOfDataComparedToOther(factoids);
+    }
 });
