@@ -15,7 +15,7 @@ on making a Chrome extension, so AJAX experience would definitely help us!
 
 ## How To Use
 Normally, extensions are packed to obfuscate code and so it is condensed into a neat package for downloading from say, 
-the Chrome Web Store.  The instructions to add this extension "unpacked" are as follows:
+the Chrome Web Store.  The official release can be found here: https://chrome.google.com/webstore/detail/factoidl-beta/kilmdgadjedfbopcfbffaeodhamgiadp.  The instructions to add this extension "unpacked" are as follows:
 
 1. Download all of the files in this repo to a local directory on your computer.
 2. Enable Developer Mode in the latest version of Chrome.  It is found under Settings -> Extensions -> Check Developer Mode.
