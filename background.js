@@ -1,14 +1,13 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 6/7/17
+ * Revised: 8/5/17
  * Description: Background page worker script.  Will
- * do most of the fact-checking tasks and pass it to popup.js.
+ * handle the fact-checking tasks and pass it to popup.js.
  *
- * "Register your background page in the extension manifest.
- * In the common case, a background page does not require any
- * HTML markup. These kind of background pages can be implemented
- * using JavaScript files alone, like this:" -Google, 2015.
+ * Register your background page in the extension manifest.
+ * HTML markup should not be required, it is meant for background
+ * JavaScript functions in most cases.
  */
 
 var bigData; // Visual text on the page to analyze.
@@ -20,13 +19,13 @@ var url = "";
 
 /*
  * General sentence to factoid (Statements that may or may not be correct) parser.
- * The "11" in Regex was decided on since most sentences under eleven characters
+ * The "10" in Regex was decided on since most sentences under eleven characters
  * are not worth checking or are not complete sentences.  "2000" is a generous
  * max character limit: we are checking sentences/statements here, not Finnegan's Wake.
  * Also, strip out excessive whitespace.  DBPedia seems to take ~4,000 characters max.
  */
 function parse() {
-  return bigData.replace(/\n|\s{2,}/g, ' ').match(/[A-Z0-9][^.!?]{11,2000}[.!?\n]/g);
+  return bigData.replace(/\n|\s{2,}/g, ' ').match(/[A-Z0-9][^.!?]{10,2000}[.!?\n]/g);
 }
 
 /*
@@ -46,7 +45,7 @@ function countRelevanceOfDataComparedToOther(factoids) {
  * A helper function.  DBPedia lookup returns an array of result nodes.
  */
 function checkResultNodes(factoid, callback) {
-  factoidCpy = parminedesParser(factoid);
+  factoidCpy = anaxagorasParser(factoid);
   factoidCpy.splice(2);
   $.ajax({
     type: "GET",
@@ -55,7 +54,7 @@ function checkResultNodes(factoid, callback) {
     dataType: "xml",
     async: true,
     success: function (xml) {
-      callback.call(this, parminedesStrategy(factoid, xml));
+      callback.call(this, anaxagorasStrategy(factoid, xml));
     },
     error: function () {
       console.log("Oops.  Something went wrong with the AJAX request.");
@@ -64,18 +63,18 @@ function checkResultNodes(factoid, callback) {
 }
 
 /*
- * First major fact-checking algorithm (strategy).
- * Named after one of the earliest ontologists, Parminedes due
+ * Second major fact-checking algorithm (strategy).
+ * Named after one of the Greek ontologists, Anaxagoras due
  * to the algorithm checking based on ontology classes in DBPedia.
  *
  * Returns a 1 if the factoid appears to be true based on finding keywords in text.
  * Returns a 0 if the factoid appears to be false or conflicted.
  */
-function parminedesStrategy(factoid, xml) {
+function anaxagorasStrategy(factoid, xml) {
   $xml = $(xml);
 
   // Pare factoid down to key words.
-  factoidParsed = parminedesParser(factoid);
+  factoidParsed = anaxagorasParser(factoid);
 
   // Search every node recursively and check if all words are in text.
   for(i = 0; i < $xml.find("*").children("Description").length; i++) {
@@ -93,18 +92,42 @@ function parminedesStrategy(factoid, xml) {
 }
 
 /*
- * The first parser used for queries and matching factoids with reference text.
- * Meant to be paired with parminedesStrategy() as the first fact-checking algorithm.
+ * The parser used for queries and matching factoids with reference text.
+ * Meant to be paired with anaxagorasStrategy() as the fact-checking algorithm.
  * Initially, punctuation is removed and the factoid is split into a token (word) array.
- * Then, article words are replaced, keeping key (important) words as search terms.
+ * Then, unimportant words are replaced, keeping key (important nouns, verbs, adjectives) words as search terms.
  *
  * Returns the parsed factoid string.
  */
-function parminedesParser(factoid) {
+function anaxagorasParser(factoid) {
+  // Remove punctuation.
   factoidParsed = factoid.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(" ");
+
+  // Replace unimportant words for query/to search results:
   for(k = 0; k < factoidParsed.length; k++) {
-    factoidParsed[k] = factoidParsed[k].replace(/\b(a|an|the|this|that|these|those|some|I|we|us|you|she|her|him|it|he|they|them|and|or|nor|was|is|not|)\b/gi, "");
+    // Article words:
+    factoidParsed[k] = factoidParsed[k].replace(/\b(a|an|the|this|that|these|those)\b/gi, "");
+
+    // Prepositions:
+    factoidParsed[k] = factoidParsed[k].replace(/\b(with|within|despite|beneath|through|throughout|until|upon|to|from|at|by|for|from|in|out|into|near|of|off|on|onto|up|down|with|over|under|past|since|between|above|below|across|after|before|during|except|front|back)\b/gi, "");
+
+    // Quantifiers:
+    factoidParsed[k] = factoidParsed[k].replace(/\b(some|many|few|much|all|enough|several|too|quite|rather)\b/gi, "");
+
+    // Pronouns:
+    factoidParsed[k] = factoidParsed[k].replace(/\b(I|we|us|you|she|her|him|it|he|they|them|my|mine|his|hers|your|yours|its|our|ours|their|theirs)\b/gi, "");
+
+    // Conjunctions:
+    factoidParsed[k] = factoidParsed[k].replace(/\b(and|or|nor|but|so|yet)\b/gi, "");
+
+    // Interrogatives:
+    factoidParsed[k] = factoidParsed[k].replace(/\b(who|whom|whose|which|what|how|why|when|where)\b/gi, "");
+
+    // Misc.:
+    factoidParsed[k] = factoidParsed[k].replace(/\b(has|was|is|yes|no|never|nobody|like|as|though|although)\b/gi, "");
   }
+
+  // Remove replaced words.
   factoidParsed = factoidParsed.filter(function (item) {
     return (item !== "");
   });
