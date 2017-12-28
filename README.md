@@ -10,15 +10,19 @@ human knowledge.
 
 ## How To Contribute
 You can contact us at the official email: factoidlproject@gmail.com
-We'd love to have those interested/experienced in Natural Language Processing (NLP), like semantic search.  Currently, we are focused
-on making a Chrome extension, so AJAX experience would definitely help us!
+
+We'd love to have those interested/experienced in Natural Language Processing (NLP) areas, like semantic search.  Currently, we are focused on making a Google Chrome extension.
+
+You can also spread the love on [Twitter](https://twitter.com/FactoidL)!
 
 ## How To Use
+The easiest way to use FactoidL is to add the [Chrome Extension](https://chrome.google.com/webstore/detail/factoidl-beta/kilmdgadjedfbopcfbffaeodhamgiadp).
+
 Normally, extensions are packed to obfuscate code and so it is condensed into a neat package for downloading from say, 
-the Chrome Web Store.  The official release can be found here: https://chrome.google.com/webstore/detail/factoidl-beta/kilmdgadjedfbopcfbffaeodhamgiadp.  The instructions to add this extension "unpacked" are as follows:
+the Chrome Web Store.  However, if you must add this extension "unpacked" instead, instructions are as follows:
 
 1. Download all of the files in this repo to a local directory on your computer.
-2. Enable Developer Mode in the latest version of Chrome.  It is found under Settings -> Extensions -> Check Developer Mode.
+2. Enable Developer Mode in the latest version of Chrome.  It is found under Settings &rarr; Extensions &rarr; Check Developer Mode.
 Do not navigate from this page.
 3. On the same Extensions page, click "Load unpacked extension..." and select the local directory with all of the FactoidL
 files from step 1.
