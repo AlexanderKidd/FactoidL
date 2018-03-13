@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 8/5/17
+ * Revised: 3/12/18
  * Description: Background page worker script.  Will
  * handle the fact-checking tasks and pass it to popup.js.
  *
@@ -42,10 +42,44 @@ function countRelevanceOfDataComparedToOther(factoids) {
 }
 
 /*
+ * This function sifts through the factoid (sentence) for
+ * the DBPedia keywords for the article query, using the DBPedia Spotlight endpoint.
+ */
+ function getSpotlightKeywords(factoid) {
+   var keyWords = factoid;
+   $.ajax({
+     type: "GET",
+     url: "http://model.dbpedia-spotlight.org/en/spot?text=" +
+     encodeURIComponent(factoid),
+     dataType: "json",
+     async: false,
+     success: function (json) {
+       if(json.annotation.surfaceForm) {
+         if(json.annotation.surfaceForm[0]) {
+           keyWords = json.annotation.surfaceForm[0]['@name'];
+         }
+         else {
+           keyWords = json.annotation.surfaceForm['@name'];
+         }
+       }
+       else {
+         keyWords = json.annotation['@text'];
+       }
+     },
+     error: function (xhr, status, error) {
+       console.log("Error: getSpotlightKeywords() AJAX request errored.  Message: " + error);
+       keyWords = "";
+     }
+   });
+
+   return keyWords.split(" ");
+ }
+
+/*
  * A helper function.  DBPedia lookup returns an array of result nodes.
  */
 function checkResultNodes(factoid, callback) {
-  factoidCpy = anaxagorasParser(factoid);
+  factoidCpy = getSpotlightKeywords(factoid);
   factoidCpy.splice(2);
   $.ajax({
     type: "GET",
@@ -56,8 +90,8 @@ function checkResultNodes(factoid, callback) {
     success: function (xml) {
       callback.call(this, anaxagorasStrategy(factoid, xml));
     },
-    error: function () {
-      console.log("Oops.  Something went wrong with the AJAX request.");
+    error: function (xhr, status, error) {
+      console.log("Error: checkResultNodes() AJAX request errored.  Message: " + error);
     }
   });
 }
