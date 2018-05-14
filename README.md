@@ -2,8 +2,8 @@
 Official Repo for FactoidL, Automated Fact-Checking Web Extension
 
 ## Overview
-FactoidL is meant to be an open source, free to use codebase to triangulate third-party content with a select group of 
-databases (e.g., Wikipedia/DBPedia) in order to test the accuracy of the content.  Essentially, this is an open source 
+FactoidL is meant to be an open source, free to use codebase to triangulate third-party content with a select group of
+databases (e.g., Wikipedia/DBPedia) in order to test the accuracy of the content.  Essentially, this is an open source
 fact-checking algorithm in various formats (browser extension, mobile apps, web apps, etc.).  The mission is to make fact-checking
 open and accessible to all so they can quickly and accurately gauge how truthful the content they are reading is compared to public
 human knowledge.
@@ -18,12 +18,12 @@ You can also spread the love on [Twitter](https://twitter.com/FactoidL)!
 ## How To Use
 The easiest way to use FactoidL is to add the [Chrome Extension](https://chrome.google.com/webstore/detail/factoidl-beta/kilmdgadjedfbopcfbffaeodhamgiadp).
 
-Normally, extensions are packed to obfuscate code and so it is condensed into a neat package for downloading from say, 
+Normally, extensions are packed to obfuscate code and so it is condensed into a neat package for downloading from say,
 the Chrome Web Store.  However, if you must add this extension "unpacked" instead, instructions are as follows:
 
 1. Download all of the files in this repo to a local directory on your computer.
 2. Enable Developer Mode in the latest version of Chrome.  It is found under Settings &rarr; Extensions &rarr; Check Developer Mode.
-Do not navigate from this page.
+Do not navigate away from this page.
 3. On the same Extensions page, click "Load unpacked extension..." and select the local directory with all of the FactoidL
 files from step 1.
 4. Now, the FactoidL icon should show next to your omnibox (in the top right, where extensions are usually found).

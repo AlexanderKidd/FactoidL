@@ -1,22 +1,31 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 6/7/17
+ * Revised: 5/13/18
  * Description: Main UI and helper functions
  * for fact-checking program pop-up.
+ *
+ * Confirmed Factoid: A statement that has been
+ * verified by the fact-checking algorithm as true
+ * for all intents and purposes.
  */
 
 var parsedData;
 var keyWords;
 var factPct = -1;
-var listVisible = false;
+var isFactListVisible = false;
 
-// Currently, data is being pulled once per popup window load from background.js script.
+/*
+ * Pulls results once per popup window load from background.js script.
+ * Currently, calculates the percentage of "correct" factoids to total factoids.
+ */
 function pollFactData() {
   var bg = chrome.extension.getBackgroundPage();
+
   if(bg) {
     parsedData = bg.factoids;
     keyWords = bg.keyWords;
+
     if(bg.factoids) {
       if(bg.factoids.length == bg.den) {
         factPct = bg.num / bg.den;
@@ -25,9 +34,11 @@ function pollFactData() {
   }
 }
 
-// Converts degrees to radians.
+/*
+ * Converts degrees to radians.
+ */
 function degreesToRadians(degrees) {
-    return (degrees * Math.PI) / 180;
+  return (degrees * Math.PI) / 180;
 }
 
 /*
@@ -35,68 +46,68 @@ function degreesToRadians(degrees) {
  * main statistic as a pie chart: a percentage of confirmed factoids to total factoids checked.
  */
 function drawPieChart() {
-    var canvas = document.getElementById("myCanvas");
-    var ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    var centerX = Math.floor(canvas.width / 2);
-    var centerY = Math.floor(canvas.height / 2);
-    var radius = Math.floor(canvas.width / 3);
+  var canvas = document.getElementById("myCanvas");
+  var ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  var centerX = Math.floor(canvas.width / 2);
+  var centerY = Math.floor(canvas.height / 2);
+  var radius = Math.floor(canvas.width / 3);
 
-    // Filling "accuracy" percentage of pie chart starting at 12 o'clock.
-    var percentage = factPct;
-    var startingAngle = Math.PI * 1.5;
-    var arcSize = degreesToRadians(percentage * 360); // Multiply % by 360 degrees for proportion of circle.
-    if(arcSize <= 0) arcSize = 0.000001;
-    var endingAngle = startingAngle + arcSize;
+  // Filling "accuracy" percentage of pie chart starting at 12 o'clock.
+  var percentage = factPct;
+  var startingAngle = Math.PI * 1.5;
+  var arcSize = degreesToRadians(percentage * 360); // Multiply % by 360 degrees for proportion of circle.
+  if(arcSize <= 0) arcSize = 0.000001;
+  var endingAngle = startingAngle + arcSize;
 
-    ctx.lineWidth = 20;
-    ctx.strokeStyle = "#4ED25E";
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, startingAngle, endingAngle, false);
-    ctx.stroke();
+  ctx.lineWidth = 20;
+  ctx.strokeStyle = "#4ED25E";
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, startingAngle, endingAngle, false);
+  ctx.stroke();
 
-    // Complementing it, for the full doughnut chart effect.
-    ctx.lineWidth = 20;
-    ctx.strokeStyle = "#ECF0F1";
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, endingAngle, startingAngle, false);
-    ctx.stroke();
+  // Complementing it, for the full doughnut chart effect.
+  ctx.lineWidth = 20;
+  ctx.strokeStyle = "#ECF0F1";
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, endingAngle, startingAngle, false);
+  ctx.stroke();
 
-    // Add percentage readout.
-    if(percentage == 1.0) {
-      ctx.fillStyle = "#267F00";
-      ctx.font = "45px Arial";
-    }
-    if(percentage >= 0.8 && percentage < 1.0) {
-      ctx.fillStyle = "#267F00";
-      ctx.font = "50px Arial";
-    }
-    if(percentage < 0.8 && percentage > 0.6) {
-      ctx.fillStyle = "#FFFF00";
-      ctx.font = "50px Arial";
-    }
-    if(percentage <= 0.6 && percentage >= 0.1) {
-      ctx.fillStyle = "#E67E22";
-      ctx.font = "50px Arial";
-    }
-    if(percentage < 0.1) {
-      ctx.fillStyle = "#FF0000";
-      ctx.font = "50px Arial";
-    }
+  // Add percentage readout.
+  if(percentage == 1.0) {
+    ctx.fillStyle = "#267F00";
+    ctx.font = "45px Arial";
+  }
+  if(percentage >= 0.8 && percentage < 1.0) {
+    ctx.fillStyle = "#267F00";
+    ctx.font = "50px Arial";
+  }
+  if(percentage < 0.8 && percentage > 0.6) {
+    ctx.fillStyle = "#FFFF00";
+    ctx.font = "50px Arial";
+  }
+  if(percentage <= 0.6 && percentage >= 0.1) {
+    ctx.fillStyle = "#E67E22";
+    ctx.font = "50px Arial";
+  }
+  if(percentage < 0.1) {
+    ctx.fillStyle = "#FF0000";
+    ctx.font = "50px Arial";
+  }
 
-    ctx.textAlign="center";
+  ctx.textAlign="center";
 
-    if(percentage == -1 || isNaN(percentage)) {
-      ctx.font = "bold 30px Arial";
-      ctx.fillStyle = "#000000";
-      ctx.fillText("Loading...", centerX, centerY + 15);
-    }
-    else {
-      ctx.fillText(Math.round(percentage * 100) + "%", centerX, centerY + 15);
-      ctx.font = "bold 15px Arial";
-      ctx.fillStyle = "#000000";
-      ctx.fillText("Accuracy", centerX, centerY + 40);
-    }
+  if(percentage == -1 || isNaN(percentage)) {
+    ctx.font = "bold 30px Arial";
+    ctx.fillStyle = "#000000";
+    ctx.fillText("Loading...", centerX, centerY + 15);
+  }
+  else {
+    ctx.fillText(Math.round(percentage * 100) + "%", centerX, centerY + 15);
+    ctx.font = "bold 15px Arial";
+    ctx.fillStyle = "#000000";
+    ctx.fillText("Accuracy", centerX, centerY + 40);
+  }
 }
 
 /*
@@ -116,7 +127,7 @@ function buildUI() {
     var list = document.createElement('ul');
     list.id = "genList";
 
-    if(!listVisible) {
+    if(!isFactListVisible) {
       for(var i = 0; i < parsedData.length; i++) {
         var factItem = document.createElement('li');
         factItem.appendChild(document.createTextNode(parsedData[i]));
@@ -124,11 +135,11 @@ function buildUI() {
       }
 
       document.getElementById('factList').appendChild(list);
-      listVisible = true;
+      isFactListVisible = true;
     }
     else {
       document.getElementById('factList').innerHTML = "";
-      listVisible = false;
+      isFactListVisible = false;
     }
 
     return false;
@@ -144,36 +155,46 @@ function buildUI() {
   }
 }
 
-// Call to scrape page content.  No validation for the page to be fully loaded.
+/*
+ * Called to scrape page content when this script is active.
+ * Currently, no validation for the page to be fully loaded:
+ * page content is processed on a rolling basis.
+ */
  chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
    chrome.tabs.executeScript(tabArray[0].id, {file: "content.js"});
  });
 
-// When the popup window is loaded, call this function to sort out showing the UI.
+/*
+ * Called when the popup window is loaded.
+ * Kicks off processing the current tab's page and building the UI.
+ */
 window.onload = function displayUI() {
-    document.getElementById("fact_text").style.color="#FF0000";
-    document.getElementById("fact_text").innerHTML = "No content found.<br><br>Try refreshing the page.";
+  // Default error if data could not be collected for building the UI.
+  document.getElementById("fact_text").style.color="#FF0000";
+  document.getElementById("fact_text").innerHTML = "No content found.<br><br>Try refreshing the page.";
 
-    pollFactData();
-    setInterval(pollFactData, 1000);
+  // Query the background script for factoid data.  This should probably be a listener of sorts.
+  pollFactData();
+  setInterval(pollFactData, 1000);
 
-    if(parsedData) {
-      // Check the link of the page being analyzed.  If it matches the active tab, display results.
-      // Otherwise, you can assume the results are old (from another page, which may be confusing to the user).
-      chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
-        if(chrome.extension.getBackgroundPage().url == tabArray[0].url) {
-          document.getElementById("fact_text").style.color="#000000";
-          document.getElementById("fact_text").innerHTML = "Factoids checked at:" +
-          "<span id=\"current-link\" title=\"" + tabArray[0].url + "\" style=\"display:block;width:200px;overflow:hidden;text-overflow:ellipsis;font-size:75%;\">" +
-          tabArray[0].url + "</span>";
+  if(parsedData) {
+    // Check the link of the page being analyzed.  If it matches the active tab, display results.
+    // Otherwise, you can assume the results are old (i.e., from another page, which may be confusing to the user).
+    chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
+      if(chrome.extension.getBackgroundPage().url == tabArray[0].url) {
+        document.getElementById("fact_text").style.color="#000000";
+        document.getElementById("fact_text").innerHTML = "Factoids checked at:" +
+        "<span id=\"current-link\" title=\"" + tabArray[0].url + "\" style=\"display:block;width:200px;overflow:hidden;text-overflow:ellipsis;font-size:75%;\">" +
+        tabArray[0].url + "</span>";
 
-          buildUI();
-          setInterval(buildUI, 1000);
-        }
-        else {
-          document.getElementById("fact_text").style.color="#FF0000";
-          document.getElementById("fact_text").innerHTML = "Tab switched.<br><br>Refresh the page for a new fact check.";
-        }
-      });
-    }
+        // Continuously build/update the UI as facotid data is processed.
+        buildUI();
+        setInterval(buildUI, 1000);
+      }
+      else {
+        document.getElementById("fact_text").style.color="#FF0000";
+        document.getElementById("fact_text").innerHTML = "Tab switched.<br><br>Refresh the page for a new fact check.";
+      }
+    });
+  }
 };

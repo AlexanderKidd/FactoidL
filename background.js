@@ -1,37 +1,81 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 3/12/18
+ * Revised: 5/13/18
  * Description: Background page worker script.  Will
- * handle the fact-checking tasks and pass it to popup.js.
+ * handle the fact-checking tasks and pass it to the UI script (popup.js).
  *
- * Register your background page in the extension manifest.
+ * This script should be registered in the extension manifest.
  * HTML markup should not be required, it is meant for background
  * JavaScript functions in most cases.
+ *
+ * Factoid: A statement (usually a full sentence) that may or may not be
+ * factual based on a common information source.
  */
 
-var bigData; // Visual text on the page to analyze.
+var scrapedText; // Scraped text from the page to analyze.
 var keyWords; // Used for Google search function on popup.html.
-var factoids; // bigData scrape AFTER parsing.
-var num = 0; // Numerator of factoids that are "accurate" (truthful).
-var den = 0; // Denominator of total factoids checked.
-var url = "";
+var factoids; // scrapedText scrape AFTER parsing.
+var num = 0; // Numerator, factoids that are "accurate" (truthful).
+var den = 0; // Denominator, total factoids checked.
+var url = ""; // Store the url of the page being processed.
 
 /*
- * General sentence to factoid (Statements that may or may not be correct) parser.
- * The "10" in Regex was decided on since most sentences under eleven characters
- * are not worth checking or are not complete sentences.  "2000" is a generous
- * max character limit: we are checking sentences/statements here, not Finnegan's Wake.
- * Also, strip out excessive whitespace.  DBPedia seems to take ~4,000 characters max.
+ * General sentence to factoid parser.
+ * The ten-character limit was decided upon since most sentences under that are
+ * not complete sentences or do not have content worth fact-checking.  The max
+ * character limit of 2000 is generous: we are mostly checking modern articles,
+ * not Finnegan's Wake.  Also, strip out excessive whitespace.
+ * DBPedia seems to take ~4,000 characters max.
+ *
+ * Returns the sanitized text (factoids).
  */
 function parse() {
-  return bigData.replace(/\n|\s{2,}/g, ' ').match(/[A-Z0-9][^.!?]{10,2000}[.!?\n]/g);
+  return scrapedText.replace(/\n|\s{2,}/g, ' ').match(/[A-Z0-9][^.!?]{10,2000}[.!?\n]/g);
 }
 
 /*
- * Main quantitative analysis of the factoids by comparing it against an API call's results.
- * Currently, figuring out if "fact exists in database" with:
- * http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryClass=thing&QueryString=stringsHere
+ * This function sifts through the factoid for keywords
+ * using the DBPedia Spotlight endpoint.
+ * This is used in the DBPedia Lookup article query.
+ *
+ * Returns either the factoid split-up by default, or
+ * the words deemed important by the query.
+ */
+function getSpotlightKeywords(factoid) {
+  var keyWords = factoid;
+
+  $.ajax({
+   type: "GET",
+   url: "http://model.dbpedia-spotlight.org/en/spot?text=" +
+   encodeURIComponent(factoid),
+   dataType: "json",
+   async: false,
+   success: function (json) {
+     if(json.annotation.surfaceForm) {
+       if(json.annotation.surfaceForm[0]) {
+         keyWords = json.annotation.surfaceForm[0]['@name'];
+       }
+       else {
+         keyWords = json.annotation.surfaceForm['@name'];
+       }
+     }
+     else {
+       keyWords = json.annotation['@text'];
+     }
+   },
+   error: function (xhr, status, error) {
+     console.log("Error: getSpotlightKeywords() AJAX request errored.  Message: " + error);
+     keyWords = "";
+   }
+  });
+
+  return keyWords.split(" ");
+}
+
+/*
+ * Iterates through factoids and calls checkResultNodes(),
+ * which will use the callback pctCalc() to perform the fact counting.
  */
 function countRelevanceOfDataComparedToOther(factoids) {
   if(factoids !== null) {
@@ -42,49 +86,18 @@ function countRelevanceOfDataComparedToOther(factoids) {
 }
 
 /*
- * This function sifts through the factoid (sentence) for
- * the DBPedia keywords for the article query, using the DBPedia Spotlight endpoint.
- */
- function getSpotlightKeywords(factoid) {
-   var keyWords = factoid;
-   $.ajax({
-     type: "GET",
-     url: "http://model.dbpedia-spotlight.org/en/spot?text=" +
-     encodeURIComponent(factoid),
-     dataType: "json",
-     async: false,
-     success: function (json) {
-       if(json.annotation.surfaceForm) {
-         if(json.annotation.surfaceForm[0]) {
-           keyWords = json.annotation.surfaceForm[0]['@name'];
-         }
-         else {
-           keyWords = json.annotation.surfaceForm['@name'];
-         }
-       }
-       else {
-         keyWords = json.annotation['@text'];
-       }
-     },
-     error: function (xhr, status, error) {
-       console.log("Error: getSpotlightKeywords() AJAX request errored.  Message: " + error);
-       keyWords = "";
-     }
-   });
-
-   return keyWords.split(" ");
- }
-
-/*
- * A helper function.  DBPedia lookup returns an array of result nodes.
+ * A function that returns an array of Wikipedia articles as XML nodes.
+ * Currently uses the DBPedia Lookup endpoint to check if factoids exist in Wiki data:
+ * http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryClass=thing&QueryString=stringsHere
  */
 function checkResultNodes(factoid, callback) {
-  factoidCpy = getSpotlightKeywords(factoid);
-  factoidCpy.splice(2);
+  factoidKeywords = getSpotlightKeywords(factoid);
+  factoidKeywords.splice(2); // Take first two keywords for now.
+
   $.ajax({
     type: "GET",
     url: "http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryClass=thing&QueryString=" +
-    encodeURIComponent(factoidCpy),
+    encodeURIComponent(factoidKeywords),
     dataType: "xml",
     async: true,
     success: function (xml) {
@@ -99,7 +112,7 @@ function checkResultNodes(factoid, callback) {
 /*
  * Second major fact-checking algorithm (strategy).
  * Named after one of the Greek ontologists, Anaxagoras due
- * to the algorithm checking based on ontology classes in DBPedia.
+ * to the ontology-based algorithm checks on DBPedia.
  *
  * Returns a 1 if the factoid appears to be true based on finding keywords in text.
  * Returns a 0 if the factoid appears to be false or conflicted.
@@ -170,7 +183,8 @@ function anaxagorasParser(factoid) {
 }
 
 /*
- * Callback to calculate percentage when analysis from DB returns in checkResultNodes().
+ * Callback to calculate ratio of factoids verified to
+ * total factoids, from checkResultNodes().
  */
 var pctCalc = function(returned_data) {
   if(returned_data == 1) {
@@ -180,7 +194,7 @@ var pctCalc = function(returned_data) {
 };
 
 /*
- * This listens for a message, specifically pulling from the content.js scrape.
+ * Listens for the content.js scrape of textual data.
  */
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
@@ -188,7 +202,7 @@ chrome.runtime.onMessage.addListener(
       url = request.url;
       num = 0;
       den = 0;
-      bigData = request.data;
+      scrapedText = request.data;
       keyWords = request.tags;
       factoids = parse();
       countRelevanceOfDataComparedToOther(factoids);

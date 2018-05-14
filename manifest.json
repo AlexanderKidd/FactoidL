@@ -9,8 +9,8 @@
               "128": "factoidL_icon128.png" },
 
   "background": {
-        "scripts": ["jquery-1.11.3.min.js", "background.js"],
-        "persistent": false
+    "scripts": ["jquery-1.11.3.min.js", "background.js"],
+    "persistent": false
   },
 
   "content_scripts": [
