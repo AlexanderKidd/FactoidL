@@ -16,7 +16,7 @@ var datelineSelector = ':not([class*="dateline"])';
 var scrapedText = $('p' + bylineSelector + datelineSelector).text();
 scrapedText.concat(' ');
 scrapedText.concat($('div' + bylineSelector + datelineSelector).text());
-scrapedText.concat($(' '));
+scrapedText.concat(' ');
 scrapedText.concat($('li').text());
 scrapedText.concat(' ');
 scrapedText.concat($('dd').text());
