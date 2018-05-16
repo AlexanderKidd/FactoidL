@@ -55,5 +55,7 @@ var url = window.location.href;
 
 // Pass scraped text to the background page for processing.
 chrome.runtime.sendMessage({data: scrapedText, tags: keyWords, url: url}, function(response) {
-  // NO-OP
+  if(browser.runtime.lastError != null) {
+    console.error(browser.runtime.lastError);
+  }
 });

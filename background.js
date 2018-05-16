@@ -65,7 +65,7 @@ function getSpotlightKeywords(factoid) {
      }
    },
    error: function (xhr, status, error) {
-     console.log("Error: getSpotlightKeywords() AJAX request errored.  Message: " + error);
+     console.error("Error: getSpotlightKeywords() AJAX request errored.  Message: " + error);
      keyWords = "";
    }
   });
@@ -104,7 +104,7 @@ function checkResultNodes(factoid, callback) {
       callback.call(this, anaxagorasStrategy(factoid, xml));
     },
     error: function (xhr, status, error) {
-      console.log("Error: checkResultNodes() AJAX request errored.  Message: " + error);
+      console.error("Error: checkResultNodes() AJAX request errored.  Message: " + error);
     }
   });
 }
