@@ -207,4 +207,6 @@ chrome.runtime.onMessage.addListener(
       factoids = parse();
       countRelevanceOfDataComparedToOther(factoids);
     }
+
+    return true;
 });

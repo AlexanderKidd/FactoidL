@@ -55,7 +55,10 @@ var url = window.location.href;
 
 // Pass scraped text to the background page for processing.
 chrome.runtime.sendMessage({data: scrapedText, tags: keyWords, url: url}, function(response) {
-  if(browser.runtime.lastError != null) {
-    console.error(browser.runtime.lastError);
-  }
+  // Issue with listener in background script always causing a "message port closed" error.
+  // Disable in production for now.
+  // Issue: https://bugs.chromium.org/p/chromium/issues/detail?id=586155
+  // if(chrome.runtime.lastError != null) {
+  //   console.error(chrome.runtime.lastError);
+  // }
 });

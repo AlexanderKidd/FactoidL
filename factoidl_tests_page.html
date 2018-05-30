@@ -3,15 +3,21 @@
   <!--
        @author: Alexander Kidd
 			 Created: 1/17/16
-			 Revised: 6/7/17
-			 Description: FactoidL fact checker unit tests.
+			 Revised: 5/26/18
+			 Description: FactoidL fact checker unit tests
+			 (tests individual parsing conditions).
 			 Insert variations of sentences to parse into
 			 factoids and verify the correct percentage is displayed
 			 when checking this page in Chrome.
 	-->
 	<head>
+		<!-- Title should only be scraped for the related article search. -->
 		<title>George Washington Was Cool</title>
 	</head>
+
+	<!-- Content outside the body should not be scraped, as per DOM rules. -->
+	(Shown but not scraped text.)
+
 	<body>
 		<p>
 			<!-- ######################################## -->
