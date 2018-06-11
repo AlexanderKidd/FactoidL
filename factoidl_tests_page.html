@@ -3,7 +3,7 @@
   <!--
        @author: Alexander Kidd
 			 Created: 1/17/16
-			 Revised: 5/26/18
+			 Revised: 6/10/18
 			 Description: FactoidL fact checker unit tests
 			 (tests individual parsing conditions).
 			 Insert variations of sentences to parse into
@@ -16,30 +16,54 @@
 	</head>
 
 	<!-- Content outside the body should not be scraped, as per DOM rules. -->
-	(Shown but not scraped text.)
+	(Text outside the head and body tags with no enclosing tags. Not valid HTML. Shown but not scraped.)
 
 	<body>
-		<p>
-			<!-- ######################################## -->
-			<!-- Insert Factoid sentences to check below. -->
-			<!-- ######################################## -->
+		<!-- ######################################## -->
+		<!-- Insert Factoid sentences to check below. -->
+		<!-- ######################################## -->
 
+		<!-- Assert false, do not scrape byline -->
+		<div class="byline">
+			<br>
+			<b>By G. R. R. Washington</b>
+		</div>
+
+		<!-- Assert false, do not scrape dateline -->
+		<div class="dateline">
+			<b>Written 6/4/18</b>
+		</div>
+
+		<!-- Assert false, do not scrape dateline -->
+		<div class="datelin">
+			<b>Actually written 6/5/18</b>
+		</div>
+
+		<br>
+
+		<p>
 			<!-- Assert true, DBPedia returns results. -->
 			George Washington was the first President.
 			<br>
 			<!-- Assert false, DBPedia does NOT returns results. -->
 			George Washington was a second President.
 			<br>
-			<!-- Assert false, factoid (sentence) too short. -->
+			<!-- Assert false, factoid (sentence) too short, not a factoid. -->
 			No way.
+			<br>
+			<!-- Assert false, factoid (sentence) too long, not a factoid. -->
+			A  looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong sentence.
 			<br>
 			<!-- Assert false, DBPedia does NOT returns results. -->
  			George Washington was thirds.
 			<br>
 			<!-- Assert false, DBPedia does NOT returns results. -->
 			George Washington was thir.
-
-			<!-- Assert current percentage displayed: 1/4 checked == 25% -->
+			<br>
+			<!-- Assert false, opinion factoid. -->
+			George Washington was the best president.
+			
+			<!-- Assert current percentage displayed: Only 1 will be verified out of only 5 factoids looked up == 20% -->
 		</p>
-	<body>
+	</body>
 </html>
