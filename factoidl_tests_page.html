@@ -3,7 +3,7 @@
   <!--
        @author: Alexander Kidd
 			 Created: 1/17/16
-			 Revised: 6/10/18
+			 Revised: 6/11/18
 			 Description: FactoidL fact checker unit tests
 			 (tests individual parsing conditions).
 			 Insert variations of sentences to parse into
@@ -26,17 +26,17 @@
 		<!-- Assert false, do not scrape byline -->
 		<div class="byline">
 			<br>
-			<b>By G. R. R. Washington</b>
+			<b>By G. R. R. Washington.</b>
 		</div>
 
 		<!-- Assert false, do not scrape dateline -->
 		<div class="dateline">
-			<b>Written 6/4/18</b>
+			<b>Written 6/4/18.</b>
 		</div>
 
 		<!-- Assert false, do not scrape dateline -->
 		<div class="datelin">
-			<b>Actually written 6/5/18</b>
+			<b>Actually written 6/5/18.</b>
 		</div>
 
 		<br>
@@ -62,7 +62,7 @@
 			<br>
 			<!-- Assert false, opinion factoid. -->
 			George Washington was the best president.
-			
+
 			<!-- Assert current percentage displayed: Only 1 will be verified out of only 5 factoids looked up == 20% -->
 		</p>
 	</body>

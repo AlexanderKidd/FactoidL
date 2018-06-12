@@ -1,51 +1,51 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 5/14/18
+ * Revised: 6/11/18
  * Description: Script to be injected into
  * page for content scraping.
  *
  * WARNING: THIS IS LIVE SCRIPT THAT IS RUN TOP TO BOTTOM!
  */
 
-// Remove the dateline and byline at least, those don't need to be checked.
+// Remove the dateline and byline classes content, those don't need to be checked.
 var bylineSelector = ':not([class*="byline"])';
 var datelineSelector = ':not([class*="dateline"])';
 
 // Text scrapes based on HTML tags.
 var scrapedText = $('p' + bylineSelector + datelineSelector).text();
-scrapedText.concat(' ');
-scrapedText.concat($('div' + bylineSelector + datelineSelector).text());
-scrapedText.concat(' ');
-scrapedText.concat($('li').text());
-scrapedText.concat(' ');
-scrapedText.concat($('dd').text());
-scrapedText.concat(' ');
-scrapedText.concat($('td').text());
-scrapedText.concat(' ');
-scrapedText.concat($('caption').text());
-scrapedText.concat(' ');
-scrapedText.concat($('q').text());
-scrapedText.concat(' ');
-scrapedText.concat($('blockquote').text());
-scrapedText.concat(' ');
-scrapedText.concat($('abbr').text());
-scrapedText.concat(' ');
-scrapedText.concat($('address').text());
-scrapedText.concat(' ');
-scrapedText.concat($('cite').text());
-scrapedText.concat(' ');
-scrapedText.concat($('h1' + bylineSelector + datelineSelector).text());
-scrapedText.concat(' ');
-scrapedText.concat($('h2' + bylineSelector + datelineSelector).text());
-scrapedText.concat(' ');
-scrapedText.concat($('h3' + bylineSelector + datelineSelector).text());
-scrapedText.concat(' ');
-scrapedText.concat($('h4' + bylineSelector + datelineSelector).text());
-scrapedText.concat(' ');
-scrapedText.concat($('h5' + bylineSelector + datelineSelector).text());
-scrapedText.concat(' ');
-scrapedText.concat($('h6' + bylineSelector + datelineSelector).text());
+scrapedText += ' ';
+scrapedText += $('div' + bylineSelector + datelineSelector).text();
+scrapedText += ' ';
+scrapedText += $('li').text();
+scrapedText += ' ';
+scrapedText += $('dd').text();
+scrapedText += ' ';
+scrapedText += $('td').text();
+scrapedText += ' ';
+scrapedText += $('caption').text();
+scrapedText += ' ';
+scrapedText += $('q').text();
+scrapedText += ' ';
+scrapedText += $('blockquote').text();
+scrapedText += ' ';
+scrapedText += $('abbr').text();
+scrapedText += ' ';
+scrapedText += $('address').text();
+scrapedText += ' ';
+scrapedText += $('cite').text();
+scrapedText += ' ';
+scrapedText += $('h1' + bylineSelector + datelineSelector).text();
+scrapedText += ' ';
+scrapedText += $('h2' + bylineSelector + datelineSelector).text();
+scrapedText += ' ';
+scrapedText += $('h3' + bylineSelector + datelineSelector).text();
+scrapedText += ' ';
+scrapedText += $('h4' + bylineSelector + datelineSelector).text();
+scrapedText += ' ';
+scrapedText += $('h5' + bylineSelector + datelineSelector).text();
+scrapedText += ' ';
+scrapedText += $('h6' + bylineSelector + datelineSelector).text();
 
 // The page title is usually brief enough for a related article search.
 var keyWords = $('title').text();
