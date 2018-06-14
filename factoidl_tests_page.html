@@ -51,7 +51,7 @@
 			<!-- Assert false, factoid (sentence) too short, not a factoid. -->
 			No way.
 			<br>
-			<!-- Assert false, factoid (sentence) too long, not a factoid. -->
+			<!-- Assert false, factoid too long, not a factoid. -->
 			A  looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong sentence.
 			<br>
 			<!-- Assert false, DBPedia does NOT returns results. -->
@@ -62,8 +62,14 @@
 			<br>
 			<!-- Assert false, opinion factoid. -->
 			George Washington was the best president.
+			<br>
+			<!-- Assert false, opinion in front of factual factoid. -->
+			George Washington was the best president, and George Washington was the first President.
+			<br>
+			<!-- Assert false, opinion behind a factual factoid. -->
+			George Washington was the first President, and George Washington was the best president.
 
-			<!-- Assert current percentage displayed: Only 1 will be verified out of only 5 factoids looked up == 20% -->
+			<!-- Assert current percentage displayed: Only 1 will be verified out of only 8 factoids looked up == 13% -->
 		</p>
 	</body>
 </html>
