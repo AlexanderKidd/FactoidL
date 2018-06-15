@@ -3,7 +3,7 @@
   <!--
        @author: Alexander Kidd
 			 Created: 1/17/16
-			 Revised: 6/11/18
+			 Revised: 6/14/18
 			 Description: FactoidL fact checker unit tests
 			 (tests individual parsing conditions).
 			 Insert variations of sentences to parse into
@@ -68,8 +68,11 @@
 			<br>
 			<!-- Assert false, opinion behind a factual factoid. -->
 			George Washington was the first President, and George Washington was the best president.
+			<br>
+			<!-- Assert false, random symbols in second part of factoid lookup to return false. -->
+			George Washington was the first President, &^ @George% Washing-ton's 2+2 $teeth were# cherry W0W!
 
-			<!-- Assert current percentage displayed: Only 1 will be verified out of only 8 factoids looked up == 13% -->
+			<!-- Assert current percentage displayed: Only 1 will be verified out of only 9 factoids looked up == 11% -->
 		</p>
 	</body>
 </html>
