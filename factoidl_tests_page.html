@@ -3,10 +3,10 @@
   <!--
        @author: Alexander Kidd
 			 Created: 1/17/16
-			 Revised: 6/14/18
+			 Revised: 6/16/18
 			 Description: FactoidL fact checker unit tests
-			 (tests individual parsing conditions).
-			 Insert variations of sentences to parse into
+			 (tests individual parsing/fact-checking conditions).
+			 Insert variations of text to parse into
 			 factoids and verify the correct percentage is displayed
 			 when checking this page in Chrome.
 	-->
@@ -19,33 +19,42 @@
 	(Text outside the head and body tags with no enclosing tags. Not valid HTML. Shown but not scraped.)
 
 	<body>
-		<!-- ######################################## -->
-		<!-- Insert Factoid sentences to check below. -->
-		<!-- ######################################## -->
+		<!-- ########################### -->
+		<!--  Byline/Dateline tag tests  -->
+		<!-- ########################### -->
 
-		<!-- Assert false, do not scrape byline -->
+		<!-- Assert false, do not scrape byline. -->
 		<div class="byline">
 			<br>
 			<b>By G. R. R. Washington.</b>
 		</div>
 
-		<!-- Assert false, do not scrape dateline -->
+		<!-- Assert false, do not scrape dateline. -->
 		<div class="dateline">
 			<b>Written 6/4/18.</b>
 		</div>
 
-		<!-- Assert false, do not scrape dateline -->
+		<!-- Assert false, scrape but DBPedia does NOT return results. -->
 		<div class="datelin">
 			<b>Actually written 6/5/18.</b>
 		</div>
 
+		<!-- Assert false, scrape but DBPedia does NOT return results. -->
+		<p class="datelin">
+			<b>Actually actually written 6/7/18.</b>
+		</p>
+
 		<br>
+
+		<!-- ########################## -->
+		<!--  Sentence structure tests  -->
+		<!-- ########################## -->
 
 		<p>
 			<!-- Assert true, DBPedia returns results. -->
 			George Washington was the first President.
 			<br>
-			<!-- Assert false, DBPedia does NOT returns results. -->
+			<!-- Assert false, DBPedia does NOT return results. -->
 			George Washington was a second President.
 			<br>
 			<!-- Assert false, factoid (sentence) too short, not a factoid. -->
@@ -71,8 +80,14 @@
 			<br>
 			<!-- Assert false, random symbols in second part of factoid lookup to return false. -->
 			George Washington was the first President, &^ @George% Washing-ton's 2+2 $teeth were# cherry W0W!
-
-			<!-- Assert current percentage displayed: Only 1 will be verified out of only 9 factoids looked up == 11% -->
 		</p>
+
+		<!-- ########### -->
+		<!--  Tag tests  -->
+		<!-- ########### -->
+
+		<!-- ################################################################################################### -->
+		<!--  ~ Assert current percentage displayed: Only 1 verified out of only 10 factoids looked up == 10% ~  -->
+		<!-- ################################################################################################### -->
 	</body>
 </html>
