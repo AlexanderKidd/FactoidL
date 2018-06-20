@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 5/13/18
+ * Revised: 6/17/18
  * Description: Background page worker script.  Will
  * handle the fact-checking tasks and pass it to the UI script (popup.js).
  *
@@ -65,8 +65,8 @@ function getSpotlightKeywords(factoid) {
      }
    },
    error: function (xhr, status, error) {
-     console.error("Error: getSpotlightKeywords() AJAX request errored.  Message: " + error);
-     keyWords = "";
+     console.error("Error: getSpotlightKeywords() AJAX request errored for factoid {" + factoid + "}. Message: " + error + ".");
+     //keyWords = ""; Normally would clear results, but DBPedia lookup ajax needs it.
    }
   });
 
@@ -104,7 +104,7 @@ function checkResultNodes(factoid, callback) {
       callback.call(this, anaxagorasStrategy(factoid, xml));
     },
     error: function (xhr, status, error) {
-      console.error("Error: checkResultNodes() AJAX request errored.  Message: " + error);
+      console.error("Error: checkResultNodes() AJAX request errored for factoid {" + factoid + "}. Message: " + error + ".");
     }
   });
 }

@@ -3,7 +3,7 @@
   <!--
        @author: Alexander Kidd
 			 Created: 1/17/16
-			 Revised: 6/16/18
+			 Revised: 6/19/18
 			 Description: FactoidL fact checker unit tests
 			 (tests individual parsing/fact-checking conditions).
 			 Insert variations of text to parse into
@@ -16,7 +16,7 @@
 	</head>
 
 	<!-- Content outside the body should not be scraped, as per DOM rules. -->
-	(Text outside the head and body tags with no enclosing tags. Not valid HTML. Shown but not scraped.)
+	<span style="color: #D3D3D3;">(Text outside the head and body tags with no enclosing tags. Not valid HTML. Shown but not scraped.)</span>
 
 	<body>
 		<!-- ########################### -->
@@ -44,8 +44,6 @@
 			<b>Actually actually written 6/7/18.</b>
 		</p>
 
-		<br>
-
 		<!-- ########################## -->
 		<!--  Sentence structure tests  -->
 		<!-- ########################## -->
@@ -54,30 +52,39 @@
 			<!-- Assert true, DBPedia returns results. -->
 			George Washington was the first President.
 			<br>
+
 			<!-- Assert false, DBPedia does NOT return results. -->
 			George Washington was a second President.
 			<br>
+
 			<!-- Assert false, factoid (sentence) too short, not a factoid. -->
 			No way.
 			<br>
+
 			<!-- Assert false, factoid too long, not a factoid. -->
 			A  looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong sentence.
 			<br>
+
 			<!-- Assert false, DBPedia does NOT returns results. -->
  			George Washington was thirds.
 			<br>
+
 			<!-- Assert false, DBPedia does NOT returns results. -->
 			George Washington was thir.
 			<br>
+
 			<!-- Assert false, opinion factoid. -->
 			George Washington was the best president.
 			<br>
+
 			<!-- Assert false, opinion in front of factual factoid. -->
 			George Washington was the best president, and George Washington was the first President.
 			<br>
+
 			<!-- Assert false, opinion behind a factual factoid. -->
 			George Washington was the first President, and George Washington was the best president.
 			<br>
+
 			<!-- Assert false, random symbols in second part of factoid lookup to return false. -->
 			George Washington was the first President, &^ @George% Washing-ton's 2+2 $teeth were# cherry W0W!
 		</p>
@@ -86,8 +93,77 @@
 		<!--  Tag tests  -->
 		<!-- ########### -->
 
+		<!-- Assert true on all, just testing tags. -->
+		<li>
+			George Washington was the first President.
+		</li>
+
+		<br>
+
+		<dt>A term in a term tag.</dt>
+		<dd>
+			George Washington was the first President.
+		</dd>
+
+		<br>
+
+		<table>
+			<caption>George Washington was the first President.</caption>
+			<tr>
+				<td>
+					<br>
+					George Washington was the first President.
+				</td>
+			</tr>
+		</table>
+
+		<blockquote>
+			George Washington was the first President.
+		</blockquote>
+
+		<abbr>
+			George Washington was the first President.
+		</abbr>
+
+		<br>
+		<br>
+
+		<address>
+			George Washington was the first President.
+		</address>
+
+		<br>
+
+		<cite>
+			George Washington was the first President.
+		</cite>
+
+		<h1>
+			George Washington was the first President.
+		</h1>
+
+		<h2>
+			George Washington was the first President.
+		</h2>
+
+		<h3>
+			George Washington was the first President.
+		</h3>
+
+		<h4>
+			George Washington was the first President.
+		</h4>
+
+		<h5>
+			George Washington was the first President.
+		</h5>
+
+		<h6>
+			George Washington was the first President.
+		</h6>
+
 		<!-- ################################################################################################### -->
-		<!--  ~ Assert current percentage displayed: Only 1 verified out of only 10 factoids looked up == 10% ~  -->
+		<!--  ~ Assert current percentage displayed: Only 15 verified out of only 24 factoids looked up == 63% ~ -->
 		<!-- ################################################################################################### -->
 	</body>
 </html>
