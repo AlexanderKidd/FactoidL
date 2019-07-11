@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 6/17/18
+ * Revised: 7/11/19
  * Description: Background page worker script.  Will
  * handle the fact-checking tasks and pass it to the UI script (popup.js).
  *
@@ -208,5 +208,7 @@ chrome.runtime.onMessage.addListener(
       countRelevanceOfDataComparedToOther(factoids);
     }
 
-    return true;
+    // Mainly so Chrome doesn't complain the sender didn't receive a response.
+    sendResponse({result: true});
+
 });

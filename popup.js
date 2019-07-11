@@ -149,9 +149,10 @@ function buildUI() {
   if(keyWords) {
     keyWords = keyWords.replace(/\s/g, "%20");
     linkSearch.href = "https://www.google.com/search?q=" + keyWords;
+    $('#links').show();
   }
   else {
-    linkSearch.parentNode.removeChild(linkSearch);
+    $('#links').hide();
   }
 }
 
