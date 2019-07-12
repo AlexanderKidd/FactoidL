@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 7/11/19
+ * Revised: 7/12/19
  * Description: Background page worker script.  Will
  * handle the fact-checking tasks and pass it to the UI script (popup.js).
  *
@@ -14,7 +14,7 @@
  */
 
 var scrapedText; // Scraped text from the page to analyze.
-var keyWords; // Used for Google search function on popup.html.
+var pageKeyWords; // Used for Google search function on popup.html.
 var factoids; // scrapedText scrape AFTER parsing.
 var num = 0; // Numerator, factoids that are "accurate" (truthful).
 var den = 0; // Denominator, total factoids checked.
@@ -65,7 +65,8 @@ function getSpotlightKeywords(factoid) {
      }
    },
    error: function (xhr, status, error) {
-     console.error("Error: getSpotlightKeywords() AJAX request errored for factoid {" + factoid + "}. Message: " + error + ".");
+     console.error("Error: getSpotlightKeywords() AJAX request errored for factoid {" + factoid + "}. Message: " + error +
+     "." + "\n" + "Site: " + url);
      //keyWords = ""; Normally would clear results, but DBPedia lookup ajax needs it.
    }
   });
@@ -104,7 +105,8 @@ function checkResultNodes(factoid, callback) {
       callback.call(this, anaxagorasStrategy(factoid, xml));
     },
     error: function (xhr, status, error) {
-      console.error("Error: checkResultNodes() AJAX request errored for factoid {" + factoid + "}. Message: " + error + ".");
+      console.error("Error: checkResultNodes() AJAX request errored for factoid {" + factoid + "}. Message: " + error +
+      "." + "\n" + "Site: " + url);
     }
   });
 }
@@ -203,7 +205,7 @@ chrome.runtime.onMessage.addListener(
       num = 0;
       den = 0;
       scrapedText = request.data;
-      keyWords = request.tags;
+      pageKeyWords = request.tags;
       factoids = parse();
       countRelevanceOfDataComparedToOther(factoids);
     }

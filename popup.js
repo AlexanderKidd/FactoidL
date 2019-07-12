@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 5/13/18
+ * Revised: 7/12/19
  * Description: Main UI and helper functions
  * for fact-checking program pop-up.
  *
@@ -24,7 +24,7 @@ function pollFactData() {
 
   if(bg) {
     parsedData = bg.factoids;
-    keyWords = bg.keyWords;
+    keyWords = bg.pageKeyWords;
 
     if(bg.factoids) {
       if(bg.factoids.length == bg.den) {
@@ -146,6 +146,7 @@ function buildUI() {
   };
 
   var linkSearch = document.getElementById('links');
+
   if(keyWords) {
     keyWords = keyWords.replace(/\s/g, "%20");
     linkSearch.href = "https://www.google.com/search?q=" + keyWords;

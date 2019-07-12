@@ -25,8 +25,17 @@ $(':not(:not(' + whitelist.join(',') + '))' + ':not(' + blacklist.join(',') + ')
   scrapedText += ' ';
 });
 
-// The page title is usually brief enough for a related article search.
+// The page title is usually brief enough for a related article search, otherwise try a factoid.
 var keyWords = $('title').text();
+
+if(!keyWords) {
+	if(scrapedText.indexOf('.') != -1) {
+		keyWords = scrapedText.substring(0, scrapedText.indexOf('.'));
+	}
+	else {
+		keyWords = "No keywords found. Need page title or page text.";
+	}
+}
 
 // Get the URL of the page being scraped.
 var url = window.location.href;
