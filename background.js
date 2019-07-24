@@ -47,10 +47,10 @@ function getSpotlightKeywords(factoid) {
 
   $.ajax({
    type: "GET",
-   url: "http://model.dbpedia-spotlight.org/en/spot?text=" +
+   url: "http://api.dbpedia-spotlight.org/en/spot?text=" +
    encodeURIComponent(factoid),
    dataType: "json",
-   async: false,
+   async: true,
    success: function (json) {
      if(json.annotation.surfaceForm) {
        if(json.annotation.surfaceForm[0]) {

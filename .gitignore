@@ -1,3 +1,6 @@
+# Ignore the zipped extension versions.
 *.zip
-FactoidL_promo_1.png
+
+# Ignore promos (or non-critical) images that take up a lot of space.
 *.JPG
+FactoidL_promo_*.png

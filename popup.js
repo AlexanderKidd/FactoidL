@@ -11,9 +11,15 @@
  */
 
 var parsedData;
+var totalFactoids;
 var keyWords;
 var factPct = -1;
+
 var isFactListVisible = false;
+
+var loadArcSize = degreesToRadians(45);
+var loadStartAngle = 0;
+var loadInc = 0;
 
 /*
  * Pulls results once per popup window load from background.js script.
@@ -28,6 +34,7 @@ function pollFactData() {
 
     if(bg.factoids) {
       if(bg.factoids.length == bg.den) {
+        totalFactoids = bg.den;
         factPct = bg.num / bg.den;
       }
     }
@@ -97,10 +104,26 @@ function drawPieChart() {
 
   ctx.textAlign="center";
 
-  if(percentage == -1 || isNaN(percentage)) {
+  if(percentage == -1 || isNaN(percentage) || parsedData.length != totalFactoids) {
+    // Make pie chart a loading animation.
+    ctx.strokeStyle = "#4ED25E";
+    loadStartAngle = (1.5 * Math.PI * loadInc) / 100;
+    var loadEndAngle = loadStartAngle + loadArcSize;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, loadStartAngle, loadEndAngle, false);
+    ctx.stroke();
+
+    // Complementing it, for the full doughnut chart effect.
+    ctx.strokeStyle = "#ECF0F1";
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, loadEndAngle, loadStartAngle, false);
+    ctx.stroke();
+
     ctx.font = "bold 30px Arial";
     ctx.fillStyle = "#000000";
     ctx.fillText("Loading...", centerX, centerY + 15);
+
+    loadInc = (loadInc + 1) % 100;
   }
   else {
     ctx.fillText(Math.round(percentage * 100) + "%", centerX, centerY + 15);
