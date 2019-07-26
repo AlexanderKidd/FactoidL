@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 7/12/19
+ * Revised: 7/25/19
  * Description: Main UI and helper functions
  * for fact-checking program pop-up.
  *
@@ -11,6 +11,7 @@
  */
 
 var parsedData;
+var factRecord;
 var totalFactoids;
 var keyWords;
 var factPct = -1;
@@ -30,6 +31,7 @@ function pollFactData() {
 
   if(bg) {
     parsedData = bg.factoids;
+    factRecord = bg.factRecord;
     keyWords = bg.pageKeyWords;
 
     if(bg.factoids) {
@@ -148,12 +150,23 @@ function buildUI() {
   // Generate a list of facts so the user knows what was checked and what to disregard.
   facts.onclick = function() {
     var list = document.createElement('ul');
+    $(list).css("list-style", "none");
+    $(list).css("padding", "0");
+    $(list).css("margin", "0");
     list.id = "genList";
 
     if(!isFactListVisible) {
       for(var i = 0; i < parsedData.length; i++) {
         var factItem = document.createElement('li');
-        factItem.appendChild(document.createTextNode(parsedData[i]));
+        var factBefore = "";
+        if(factRecord[i] == '1') {
+          factBefore = "✅";
+        }
+        else {
+          factBefore = "❌";
+        }
+        factItem.appendChild(document.createTextNode(factBefore + " " + parsedData[i]));
+        $(factItem).css("padding", "5px 0px");
         list.appendChild(factItem);
       }
 
@@ -200,7 +213,7 @@ window.onload = function displayUI() {
 
   // Query the background script for factoid data.  This should probably be a listener of sorts.
   pollFactData();
-  setInterval(pollFactData, 1000);
+  setInterval(pollFactData, 500);
 
   if(parsedData) {
     // Check the link of the page being analyzed.  If it matches the active tab, display results.

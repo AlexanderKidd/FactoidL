@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 7/12/19
+ * Revised: 7/25/19
  * Description: Background page worker script.  Will
  * handle the fact-checking tasks and pass it to the UI script (popup.js).
  *
@@ -16,6 +16,7 @@
 var scrapedText; // Scraped text from the page to analyze.
 var pageKeyWords; // Used for Google search function on popup.html.
 var factoids; // scrapedText scrape AFTER parsing.
+var factRecord; // Keep track of which factoids were verified.
 var num = 0; // Numerator, factoids that are "accurate" (truthful).
 var den = 0; // Denominator, total factoids checked.
 var url = ""; // Store the url of the page being processed.
@@ -47,7 +48,7 @@ function getSpotlightKeywords(factoid) {
 
   $.ajax({
    type: "GET",
-   url: "http://api.dbpedia-spotlight.org/en/spot?text=" +
+   url: "https://api.dbpedia-spotlight.org/en/spot?text=" +
    encodeURIComponent(factoid),
    dataType: "json",
    async: true,
@@ -81,7 +82,7 @@ function getSpotlightKeywords(factoid) {
 function countRelevanceOfDataComparedToOther(factoids) {
   if(factoids !== null) {
     for(i = 0; i < factoids.length; i++) {
-      checkResultNodes(factoids[i], pctCalc);
+      checkResultNodes(factoids[i], i, pctCalc);
     }
   }
 }
@@ -89,9 +90,9 @@ function countRelevanceOfDataComparedToOther(factoids) {
 /*
  * A function that returns an array of Wikipedia articles as XML nodes.
  * Currently uses the DBPedia Lookup endpoint to check if factoids exist in Wiki data:
- * http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryClass=thing&QueryString=stringsHere
+ * http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryClass=thing&QueryString=exampleText
  */
-function checkResultNodes(factoid, callback) {
+function checkResultNodes(factoid, index, callback) {
   factoidKeywords = getSpotlightKeywords(factoid);
   factoidKeywords.splice(2); // Take first two keywords for now.
 
@@ -102,7 +103,7 @@ function checkResultNodes(factoid, callback) {
     dataType: "xml",
     async: true,
     success: function (xml) {
-      callback.call(this, anaxagorasStrategy(factoid, xml));
+      callback.call(this, anaxagorasStrategy(factoid, index, xml));
     },
     error: function (xhr, status, error) {
       console.error("Error: checkResultNodes() AJAX request errored for factoid {" + factoid + "}. Message: " + error +
@@ -119,7 +120,7 @@ function checkResultNodes(factoid, callback) {
  * Returns a 1 if the factoid appears to be true based on finding keywords in text.
  * Returns a 0 if the factoid appears to be false or conflicted.
  */
-function anaxagorasStrategy(factoid, xml) {
+function anaxagorasStrategy(factoid, index, xml) {
   $xml = $(xml);
 
   // Pare factoid down to key words.
@@ -129,7 +130,10 @@ function anaxagorasStrategy(factoid, xml) {
   for(i = 0; i < $xml.find("*").children("Description").length; i++) {
     for(j = 0; j < factoidParsed.length; j++) {
       if($xml.find("*").children("Description").text().includes(factoidParsed[j])) {
-        if(j == factoidParsed.length - 1) return 1;
+        if(j == factoidParsed.length - 1) {
+          factRecord[index] = '1';
+          return 1;
+        }
       }
       else {
         break;
@@ -207,6 +211,7 @@ chrome.runtime.onMessage.addListener(
       scrapedText = request.data;
       pageKeyWords = request.tags;
       factoids = parse();
+      factRecord = ['0'.repeat(factoids.length)];
       countRelevanceOfDataComparedToOther(factoids);
     }
 
