@@ -131,7 +131,7 @@ function drawPieChart() {
     ctx.fillText(Math.round(percentage * 100) + "%", centerX, centerY + 15);
     ctx.font = "bold 15px Arial";
     ctx.fillStyle = "#000000";
-    ctx.fillText("Accuracy", centerX, centerY + 40);
+    ctx.fillText("Verified", centerX, centerY + 40);
   }
 }
 
@@ -171,7 +171,7 @@ function buildUI() {
           factError.append(document.createTextNode("[404 Error - Could Not Check]"));
           $(factError).css("color", "#AD0000");
         }
-        
+
         factItem.append(document.createTextNode(factBefore + " "));
         factItem.append(factError);
         factItem.append(document.createTextNode(parsedData[i]));

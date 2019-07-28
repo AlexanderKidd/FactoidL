@@ -32,6 +32,7 @@ var url = ""; // Store the url of the page being processed.
  * Returns the sanitized text (factoids).
  */
 function parse() {
+  /* TODO: Normalize/remove abbreviation periods. */
   return scrapedText.replace(/\n|\s{2,}/g, ' ').match(/[A-Z0-9][^.!?]{10,2000}[.!?\n]/g);
 }
 
