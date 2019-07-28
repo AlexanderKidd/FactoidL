@@ -44,35 +44,35 @@ function parse() {
  * the words deemed important by the query.
  */
 function getSpotlightKeywords(factoid) {
-  var keyWords = factoid;
+  var keyWords = nlp(factoid).topics().data();
 
-  $.ajax({
-   type: "GET",
-   url: "https://api.dbpedia-spotlight.org/en/spot?text=" +
-   encodeURIComponent(factoid),
-   dataType: "json",
-   async: true,
-   success: function (json) {
-     if(json.annotation.surfaceForm) {
-       if(json.annotation.surfaceForm[0]) {
-         keyWords = json.annotation.surfaceForm[0]['@name'];
-       }
-       else {
-         keyWords = json.annotation.surfaceForm['@name'];
-       }
-     }
-     else {
-       keyWords = json.annotation['@text'];
-     }
-   },
-   error: function (xhr, status, error) {
-     console.error("Error: getSpotlightKeywords() AJAX request errored for factoid {" + factoid + "}. Message: " + error +
-     "." + "\n" + "Site: " + url);
-     //keyWords = ""; Normally would clear results, but DBPedia lookup ajax needs it.
-   }
-  });
+  // $.ajax({
+  //  type: "GET",
+  //  url: "https://api.dbpedia-spotlight.org/en/spot?text=" +
+  //  encodeURIComponent(factoid),
+  //  dataType: "json",
+  //  async: true,
+  //  success: function (json) {
+  //    if(json.annotation.surfaceForm) {
+  //      if(json.annotation.surfaceForm[0]) {
+  //        keyWords = json.annotation.surfaceForm[0]['@name'];
+  //      }
+  //      else {
+  //        keyWords = json.annotation.surfaceForm['@name'];
+  //      }
+  //    }
+  //    else {
+  //      keyWords = json.annotation['@text'];
+  //    }
+  //  },
+  //  error: function (xhr, status, error) {
+  //    console.error("Error: getSpotlightKeywords() AJAX request errored for factoid {" + factoid + "}. Message: " + error +
+  //    "." + "\n" + "Site: " + url);
+  //    //keyWords = ""; Normally would clear results, but DBPedia lookup ajax needs it.
+  //  }
+  // });
 
-  return keyWords.split(" ");
+  return keyWords.map(function(a) { return a.text; });
 }
 
 /*
@@ -106,6 +106,9 @@ function checkResultNodes(factoid, index, callback) {
       callback.call(this, anaxagorasStrategy(factoid, index, xml));
     },
     error: function (xhr, status, error) {
+      factRecord[index] = "404";
+      den++; // Still increment that a factoid was processed even with failure.
+
       console.error("Error: checkResultNodes() AJAX request errored for factoid {" + factoid + "}. Message: " + error +
       "." + "\n" + "Site: " + url);
     }
@@ -211,7 +214,7 @@ chrome.runtime.onMessage.addListener(
       scrapedText = request.data;
       pageKeyWords = request.tags;
       factoids = parse();
-      factRecord = ['0'.repeat(factoids.length)];
+      factRecord = factoids ? ['0'.repeat(factoids.length)] : [];
       countRelevanceOfDataComparedToOther(factoids);
     }
 

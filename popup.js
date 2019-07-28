@@ -158,6 +158,7 @@ function buildUI() {
     if(!isFactListVisible) {
       for(var i = 0; i < parsedData.length; i++) {
         var factItem = document.createElement('li');
+        var factError = document.createElement('span');
         var factBefore = "";
         if(factRecord[i] == '1') {
           factBefore = "✅";
@@ -165,7 +166,15 @@ function buildUI() {
         else {
           factBefore = "❌";
         }
-        factItem.appendChild(document.createTextNode(factBefore + " " + parsedData[i]));
+
+        if(factRecord[i] == "404") {
+          factError.append(document.createTextNode("[404 Error - Could Not Check]"));
+          $(factError).css("color", "#AD0000");
+        }
+        
+        factItem.append(document.createTextNode(factBefore + " "));
+        factItem.append(factError);
+        factItem.append(document.createTextNode(parsedData[i]));
         $(factItem).css("padding", "5px 0px");
         list.appendChild(factItem);
       }
@@ -208,7 +217,7 @@ function buildUI() {
  */
 window.onload = function displayUI() {
   // Default error if data could not be collected for building the UI.
-  document.getElementById("fact_text").style.color="#FF0000";
+  document.getElementById("fact_text").style.color="#AD0000";
   document.getElementById("fact_text").innerHTML = "No content found.<br><br>Try refreshing the page.";
 
   // Query the background script for factoid data.  This should probably be a listener of sorts.
@@ -230,7 +239,7 @@ window.onload = function displayUI() {
         setInterval(buildUI, 1000);
       }
       else {
-        document.getElementById("fact_text").style.color="#FF0000";
+        document.getElementById("fact_text").style.color="#AD0000";
         document.getElementById("fact_text").innerHTML = "Tab switched.<br><br>Refresh the page for a new fact check.";
       }
     });

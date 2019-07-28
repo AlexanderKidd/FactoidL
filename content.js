@@ -8,19 +8,22 @@
  * WARNING: THIS IS LIVE SCRIPT THAT IS RUN TOP TO BOTTOM!
  */
 
-// Whitelist scrape content that needs to be checked.
-var whitelist = ['div', 'header', 'p', 'a', 'li', 'dd', 'td', 'caption', 'q', 'blockquote', 'abbr', 'address', 'cite'];
-
-// Blacklist (remove) content that doesn't need to be checked, like dateline and byline classes.
-var blacklist = ['.byline', '.dateline'];
+// Blacklist (remove) content that probably doesn't need to be checked, like dateline and byline classes (i.e., visible plaintext).
+// Decided against a whitelist since some sites have custom tags that are completely valid (e.g., <article>).
+var blacklist = ['.byline', '.dateline', 'applet', 'area', 'audio', 'base', 'basefont', 'canvas', 'embed', 'frame',
+  'frameset', 'head', 'link', 'meta', 'noscript', 'object', 'param', 'progress', 'script', 'source', 'style', 'svg', 'track', 'video'];
 
 // Text scrapes based on HTML tags.
 var scrapedText = '';
 
-$(':not(:not(' + whitelist.join(',') + '))' + ':not(' + blacklist.join(',') + ')').each(function() {
-	scrapedText += $(this).contents().filter(function() {
-    return this.nodeType === 3;
-  }).text().trim();
+// A micro plugin for ignoring certain child elements, thanks to: https://stackoverflow.com/questions/11347779/jquery-exclude-children-from-text
+$.fn.ignore = function(sel) {
+  return this.clone().find(sel || ">*").remove().end();
+};
+
+// Essentially, take the first level of whitelisted elements and ignore blacklisted, then do the same for the contents of each.
+$('body > :not(' + blacklist.join(',') + ')').each(function() {
+	scrapedText += $(this).contents().ignore(blacklist.join(',')).text().trim();
 
   scrapedText += ' ';
 });
