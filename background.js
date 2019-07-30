@@ -31,8 +31,20 @@ var url = ""; // Store the url of the page being processed.
  *
  * Returns the sanitized text (factoids).
  */
+
 function parse() {
-  /* TODO: Normalize/remove abbreviation periods. */
+  // Remove periods at the end of honorifics and in between acronyms (Note: won't catch all or sentences ending in abbreviations).
+  nlpText = nlp(scrapedText.replace(/\.-/g, '. '));
+  abbrList = nlpText.match('(#Acronym|#Abbreviation)').text();
+
+  abbrList.split(' ').forEach(function(token, index, arr) {
+    if(token) {
+      var re = new RegExp('\\s' + token + '\\s', "g");
+      var replace = token.replace(/\./g, '');
+      scrapedText = scrapedText.replace(re, ' ' + replace + ' ');
+    }
+  });
+
   return scrapedText.replace(/\n|\s{2,}/g, ' ').match(/[A-Z0-9][^.!?]{10,2000}[.!?\n]/g);
 }
 
@@ -46,32 +58,6 @@ function parse() {
  */
 function getSpotlightKeywords(factoid) {
   var keyWords = nlp(factoid).topics().data();
-
-  // $.ajax({
-  //  type: "GET",
-  //  url: "https://api.dbpedia-spotlight.org/en/spot?text=" +
-  //  encodeURIComponent(factoid),
-  //  dataType: "json",
-  //  async: true,
-  //  success: function (json) {
-  //    if(json.annotation.surfaceForm) {
-  //      if(json.annotation.surfaceForm[0]) {
-  //        keyWords = json.annotation.surfaceForm[0]['@name'];
-  //      }
-  //      else {
-  //        keyWords = json.annotation.surfaceForm['@name'];
-  //      }
-  //    }
-  //    else {
-  //      keyWords = json.annotation['@text'];
-  //    }
-  //  },
-  //  error: function (xhr, status, error) {
-  //    console.error("Error: getSpotlightKeywords() AJAX request errored for factoid {" + factoid + "}. Message: " + error +
-  //    "." + "\n" + "Site: " + url);
-  //    //keyWords = ""; Normally would clear results, but DBPedia lookup ajax needs it.
-  //  }
-  // });
 
   return keyWords.map(function(a) { return a.text; });
 }
