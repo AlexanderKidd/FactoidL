@@ -31,8 +31,7 @@ var url = ""; // Store the url of the page being processed.
  *
  * Returns the sanitized text (factoids).
  */
-
-function parse() {
+function sentenceParse() {
   // Remove periods at the end of honorifics and in between acronyms (Note: won't catch all or sentences ending in abbreviations).
   nlpText = nlp(scrapedText.replace(/\.-/g, '. '));
   abbrList = nlpText.match('(#Acronym|#Abbreviation)').text();
@@ -44,6 +43,8 @@ function parse() {
       scrapedText = scrapedText.replace(re, ' ' + replace + ' ');
     }
   });
+
+  // Coreference resolution: Replace ambiguous references with look-behind (e.g., pronouns in previous sentence).
 
   return scrapedText.replace(/\n|\s{2,}/g, ' ').match(/[A-Z0-9][^.!?]{10,2000}[.!?\n]/g);
 }
@@ -66,7 +67,7 @@ function getSpotlightKeywords(factoid) {
  * Iterates through factoids and calls checkResultNodes(),
  * which will use the callback pctCalc() to perform the fact counting.
  */
-function countRelevanceOfDataComparedToOther(factoids) {
+function verifyFactoids(factoids) {
   if(factoids !== null) {
     for(i = 0; i < factoids.length; i++) {
       checkResultNodes(factoids[i], i, pctCalc);
@@ -186,6 +187,7 @@ var pctCalc = function(returned_data) {
   if(returned_data == 1) {
     num++;
   }
+
   den++;
 };
 
@@ -200,12 +202,12 @@ chrome.runtime.onMessage.addListener(
       den = 0;
       scrapedText = request.data;
       pageKeyWords = request.tags;
-      factoids = parse();
+      factoids = sentenceParse();
       factRecord = factoids ? ['0'.repeat(factoids.length)] : [];
-      countRelevanceOfDataComparedToOther(factoids);
+
+      verifyFactoids(factoids);
     }
 
     // Mainly so Chrome doesn't complain the sender didn't receive a response.
     sendResponse({result: true});
-
 });
