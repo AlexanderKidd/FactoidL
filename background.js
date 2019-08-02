@@ -21,6 +21,11 @@ var num = 0; // Numerator, factoids that are "accurate" (truthful).
 var den = 0; // Denominator, total factoids checked.
 var url = ""; // Store the url of the page being processed.
 
+// Regex escaper so a string can be passed into an expression object without fail.
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
 /*
  * General sentence to factoid parser.
  * The ten-character limit was decided upon since most sentences under that are
@@ -38,13 +43,14 @@ function sentenceParse() {
 
   abbrList.split(' ').forEach(function(token, index, arr) {
     if(token) {
-      var re = new RegExp('\\s' + token + '\\s', "g");
+      var re = new RegExp('\\s' + escapeRegExp(token) + '\\s', "g");
       var replace = token.replace(/\./g, '');
       scrapedText = scrapedText.replace(re, ' ' + replace + ' ');
     }
   });
 
   // Coreference resolution: Replace ambiguous references with look-behind (e.g., pronouns in previous sentence).
+  // Maybe do IFF no terms found in sentence, go to previous sentence and pull.  How to determine that is tough...
 
   return scrapedText.replace(/\n|\s{2,}/g, ' ').match(/[A-Z0-9][^.!?]{10,2000}[.!?\n]/g);
 }
