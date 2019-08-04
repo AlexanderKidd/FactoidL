@@ -51,6 +51,7 @@ function sentenceParse() {
 
   // Coreference resolution: Replace ambiguous references with look-behind (e.g., pronouns in previous sentence).
   // Maybe do IFF no terms found in sentence, go to previous sentence and pull.  How to determine that is tough...
+  console.log(nlpText);
 
   return scrapedText.replace(/\n|\s{2,}/g, ' ').match(/[A-Z0-9][^.!?]{10,2000}[.!?\n]/g);
 }
@@ -63,8 +64,9 @@ function sentenceParse() {
  * Returns either the factoid split-up by default, or
  * the words deemed important by the query.
  */
-function getSpotlightKeywords(factoid) {
+function getKeywords(factoid) {
   var keyWords = nlp(factoid).topics().data();
+  console.log(keyWords.map(function(a) { return a.text; }));
 
   return keyWords.map(function(a) { return a.text; });
 }
@@ -87,8 +89,8 @@ function verifyFactoids(factoids) {
  * http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryClass=thing&QueryString=exampleText
  */
 function checkResultNodes(factoid, index, callback) {
-  factoidKeywords = getSpotlightKeywords(factoid);
-  factoidKeywords.splice(2); // Take first two keywords for now.
+  factoidKeywords = getKeywords(factoid);
+  factoidKeywords.splice(1); // Take first keyword/phrase for now.
 
   $.ajax({
     type: "GET",
