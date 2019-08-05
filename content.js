@@ -11,7 +11,7 @@
 // Blacklist (remove) content that probably doesn't need to be checked, like dateline and byline classes (i.e., visible plaintext).
 // Decided against a whitelist since some sites have custom tags that are completely valid (e.g., <article>).
 var blacklist = ['.byline', '.dateline', '.date', '.toc', 'applet', 'area', 'audio', 'base', 'basefont', 'canvas', 'embed', 'frame',
-  'frameset', 'head', 'iframe', 'link', 'meta', 'noscript', 'object', 'param', 'progress', 'script', 'source', 'style', 'svg', 'track', 'video'];
+  'frameset', 'head', 'h2', 'h3', 'h4', 'h5', 'h6', 'iframe', 'link', 'meta', 'noscript', 'object', 'param', 'progress', 'script', 'source', 'style', 'svg', 'track', 'video'];
 
 // Text scrapes based on HTML tags.
 var scrapedText = '';

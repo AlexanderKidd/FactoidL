@@ -66,7 +66,6 @@ function sentenceParse() {
  */
 function getKeywords(factoid) {
   var keyWords = nlp(factoid).topics().data();
-  console.log(keyWords.map(function(a) { return a.text; }));
 
   return keyWords.map(function(a) { return a.text; });
 }
