@@ -16,7 +16,7 @@
 	</head>
 
 	<!-- Content outside the body should not be scraped, as per DOM rules. -->
-	<span style="color: #D3D3D3;">(Text outside the head and body tags with no enclosing tags. Not valid HTML. Shown but not scraped.)</span>
+	<span style="color: #D3D3D3;">(Text outside the head and body tags with no enclosing tags. Chrome throws it into body tag.)</span>
 
 	<body>
 		<!-- ########################### -->
@@ -35,14 +35,9 @@
 		</div>
 
 		<!-- Assert false, scrape but DBPedia does NOT return results. -->
-		<div class="datelin">
+		<div class="date">
 			<b>Actually written 6/5/18.</b>
 		</div>
-
-		<!-- Assert false, scrape but DBPedia does NOT return results. -->
-		<p class="datelin">
-			<b>Actually actually written 6/7/18.</b>
-		</p>
 
 		<!-- ########################## -->
 		<!--  Sentence structure tests  -->
@@ -163,7 +158,7 @@
 		</h6>
 
 		<!-- ################################################################################################### -->
-		<!--  ~ Assert current percentage displayed: Only 15 verified out of only 24 factoids looked up == 63% ~ -->
+		<!--  ~ Assert current percentage displayed: Only 15 verified out of only 25 factoids looked up == 60% ~ -->
 		<!-- ################################################################################################### -->
 	</body>
 </html>
