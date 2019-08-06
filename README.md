@@ -1,5 +1,5 @@
 # FactoidL
-Official Repo for FactoidL, Automated Fact-Checking Web Extension
+#### Official repo for FactoidL, Automated Fact-Checking for the Web.
 
 ## Overview
 FactoidL is meant to be an open source, free to use codebase to triangulate third-party content with a select group of
@@ -11,7 +11,7 @@ human knowledge.
 ## How To Contribute
 You can contact us at the official email: factoidlproject@gmail.com
 
-We'd love to have those interested/experienced in Natural Language Processing (NLP) areas, like semantic search.  Currently, we are focused on making a Google Chrome extension.
+We'd love to have those interested/experienced in Natural Language Processing (NLP) areas, like semantic search.  Currently, we are focused on building a Google Chrome extension, a mobile app (PWA), and an Electron app for desktop.
 
 You can also spread the love on [Twitter](https://twitter.com/FactoidL)!
 
@@ -34,3 +34,10 @@ should show up on the extension popup.
 
 ## Contributors
 Alexander Kidd (Lead Dev)
+
+## Special Thanks To
+* [Compromise.js](https://github.com/spencermountain/compromise) (Awesome all-purpose NLP for js)
+
+* [DBPedia](https://wiki.dbpedia.org/) (Wikipedia in a database!)
+
+* [JQuery](https://jquery.com/) (Who said you didn't need it?)
