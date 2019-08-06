@@ -120,8 +120,14 @@ function checkResultNodes(factoid, index, callback) {
 function anaxagorasStrategy(factoid, index, xml) {
   $xml = $(xml);
 
-  // Pare factoid down to key words, expand contractions to get negations.
-  factoidParsed = anaxagorasParser(nlp(factoid).contractions().expand().out());
+  // Normalize to singular, to digits, to present tense, and expand contractions, then take content words only to compare.
+  nlpFactoid = nlp(factoid);
+  nlpFactoid.nouns().toSingular();
+  nlpFactoid.values().toNumber();
+  nlpFactoid.sentences().toPresentTense();
+  nlpFactoid.contractions().expand();
+
+  factoidParsed = anaxagorasParser(nlpFactoid.out());
 
   // Search every node recursively and check if all words are in text.
   for(i = 0; i < $xml.find("*").children("Description").length; i++) {
