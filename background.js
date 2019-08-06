@@ -49,7 +49,7 @@ function sentenceParse() {
     }
   });
 
-  // Coreference resolution: Replace ambiguous references with look-behind (e.g., pronouns in previous sentence).
+  // TODO: Coreference resolution: Replace ambiguous references with look-behind (e.g., pronouns in previous sentence).
   // Maybe do IFF no terms found in sentence, go to previous sentence and pull.  How to determine that is tough...
   console.log(nlpText);
 
@@ -57,8 +57,7 @@ function sentenceParse() {
 }
 
 /*
- * This function sifts through the factoid for keywords
- * using the DBPedia Spotlight endpoint.
+ * This function sifts through the factoid for keywords.
  * This is used in the DBPedia Lookup article query.
  *
  * Returns either the factoid split-up by default, or
@@ -121,8 +120,8 @@ function checkResultNodes(factoid, index, callback) {
 function anaxagorasStrategy(factoid, index, xml) {
   $xml = $(xml);
 
-  // Pare factoid down to key words.
-  factoidParsed = anaxagorasParser(factoid);
+  // Pare factoid down to key words, expand contractions to get negations.
+  factoidParsed = anaxagorasParser(nlp(factoid).contractions().expand().out());
 
   // Search every node recursively and check if all words are in text.
   for(i = 0; i < $xml.find("*").children("Description").length; i++) {
