@@ -131,8 +131,16 @@ function anaxagorasStrategy(factoid, index, xml) {
 
   // Search every node recursively and check if all words are in text.
   for(i = 0; i < $xml.find("*").children("Description").length; i++) {
+    // Normalize source facts.
+    nlpSource = nlp($xml.find("*").children("Description").text());
+    nlpSource.nouns().toSingular();
+    nlpSource.values().toNumber();
+    nlpSource.sentences().toPresentTense();
+    nlpSource.contractions().expand();
+
+    sourceFact = anaxagorasParser(nlpSource.out());
     for(j = 0; j < factoidParsed.length; j++) {
-      if($xml.find("*").children("Description").text().includes(factoidParsed[j])) {
+      if(sourceFact.includes(factoidParsed[j])) {
         if(j == factoidParsed.length - 1) {
           factRecord[index] = '1';
           return 1;
