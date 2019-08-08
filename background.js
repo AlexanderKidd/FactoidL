@@ -38,8 +38,8 @@ function escapeRegExp(string) {
  */
 function sentenceParse() {
   // Remove periods at the end of honorifics and in between acronyms (Note: won't catch all or sentences ending in abbreviations).
-  nlpText = nlp(scrapedText.replace(/\.-/g, '. '));
-  abbrList = nlpText.match('(#Acronym|#Abbreviation)').text();
+  var nlpText = nlp(scrapedText.replace(/\.-/g, '. '));
+  var abbrList = nlpText.match('(#Acronym|#Abbreviation)').text();
 
   abbrList.split(' ').forEach(function(token, index, arr) {
     if(token) {
@@ -87,7 +87,7 @@ function verifyFactoids(factoids) {
  * http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryClass=thing&QueryString=exampleText
  */
 function checkResultNodes(factoid, index, callback) {
-  factoidKeywords = getKeywords(factoid);
+  var factoidKeywords = getKeywords(factoid);
   factoidKeywords.splice(1); // Take first keyword/phrase for now.
 
   $.ajax({
@@ -119,26 +119,28 @@ function checkResultNodes(factoid, index, callback) {
  */
 function anaxagorasStrategy(factoid, index, xml) {
   $xml = $(xml);
+  var sourceTexts = nlp($xml.find("*").children("Description").text()).sentences().data().map((function(a) { return a.text; }));
 
   // Normalize to singular, to digits, to present tense, and expand contractions, then take content words only to compare.
-  nlpFactoid = nlp(factoid);
+  var nlpFactoid = nlp(factoid);
   nlpFactoid.nouns().toSingular();
   nlpFactoid.values().toNumber();
   nlpFactoid.sentences().toPresentTense();
   nlpFactoid.contractions().expand();
 
-  factoidParsed = anaxagorasParser(nlpFactoid.out());
+  var factoidParsed = anaxagorasParser(nlpFactoid.out());
 
-  // Search every node recursively and check if all words are in text.
-  for(i = 0; i < $xml.find("*").children("Description").length; i++) {
+  // Search every source text node recursively and check if all words are present.
+  for(i = 0; i < sourceTexts.length; i++) {
     // Normalize source facts.
-    nlpSource = nlp($xml.find("*").children("Description").text());
+    var nlpSource = nlp(sourceTexts[i]);
     nlpSource.nouns().toSingular();
     nlpSource.values().toNumber();
     nlpSource.sentences().toPresentTense();
     nlpSource.contractions().expand();
 
-    sourceFact = anaxagorasParser(nlpSource.out());
+    var sourceFact = anaxagorasParser(nlpSource.out());
+
     for(j = 0; j < factoidParsed.length; j++) {
       if(sourceFact.includes(factoidParsed[j])) {
         if(j == factoidParsed.length - 1) {
@@ -165,7 +167,7 @@ function anaxagorasStrategy(factoid, index, xml) {
  */
 function anaxagorasParser(factoid) {
   // Remove punctuation.
-  factoidParsed = factoid.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(" ");
+  var factoidParsed = factoid.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(" ");
 
   // Replace unimportant words for query/to search results:
   for(k = 0; k < factoidParsed.length; k++) {
