@@ -15,7 +15,8 @@
 
 var scrapedText; // Scraped text from the page to analyze.
 var pageKeyWords; // Used for Google search function on popup.html.
-var factoids; // scrapedText scrape AFTER parsing.
+var pageWideResults; // XML of DBPedia query based on <title> keywords.
+var factoids; // scrapedText AFTER parsing into statements.
 var factRecord; // Keep track of which factoids were verified.
 var num = 0; // Numerator, factoids that are "accurate" (truthful).
 var den = 0; // Denominator, total factoids checked.
@@ -49,10 +50,6 @@ function sentenceParse() {
     }
   });
 
-  // TODO: Coreference resolution: Replace ambiguous references with look-behind (e.g., pronouns in previous sentence).
-  // Maybe do IFF no terms found in sentence, go to previous sentence and pull.  How to determine that is tough...
-  console.log(nlpText);
-
   return scrapedText.replace(/\n|\s{2,}/g, ' ').match(/[A-Z0-9][^.!?]{10,2000}[.!?\n]/g);
 }
 
@@ -75,9 +72,16 @@ function getKeywords(factoid) {
  */
 function verifyFactoids(factoids) {
   if(factoids !== null) {
+    checkResultNodes(pageKeyWords, -1, function(xml) { pageWideResults = xml; });
+    // TODO: Coreference resolution: Replace ambiguous references with look-behind (e.g., pronouns in previous sentence).
+    // Maybe do IFF no terms found in sentence, go to previous sentence and pull.  How to determine that is tough...
+
     for(i = 0; i < factoids.length; i++) {
       checkResultNodes(factoids[i], i, pctCalc);
     }
+  }
+  else {
+    console.error("Error: verifyFactoids() had undefined or no factoids to check.");
   }
 }
 
@@ -87,8 +91,18 @@ function verifyFactoids(factoids) {
  * http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryClass=thing&QueryString=exampleText
  */
 function checkResultNodes(factoid, index, callback) {
+  // Take first two keywords or a phrase for now, or default to page keywords.
   var factoidKeywords = getKeywords(factoid);
-  factoidKeywords.splice(1); // Take first keyword/phrase for now.
+  if(factoidKeywords == null || factoidKeywords.length == 0) {
+    factoidKeywords = getKeywords(pageKeyWords);
+    if(factoidKeywords == null || factoidKeywords.length == 0) {
+      var phraseRegex = /[A-Z][a-z]*\s[a-z\s]*[A-Z][a-z]*/;
+      factoidKeywords = pageKeyWords.match(phraseRegex);
+    }
+  }
+  else {
+    factoidKeywords = factoidKeywords[0] + " " + (factoidKeywords[1] && !factoidKeywords[0].includes(" ") ? factoidKeywords[1] : "");
+  }
 
   $.ajax({
     type: "GET",
@@ -97,7 +111,13 @@ function checkResultNodes(factoid, index, callback) {
     dataType: "xml",
     async: true,
     success: function (xml) {
-      callback.call(this, anaxagorasStrategy(factoid, index, xml));
+      if(index >= 0) {
+        callback.call(this, anaxagorasStrategy(factoid, index, xml));
+      }
+      else {
+        // Special case: Get xml for page-wide keywords.
+        callback.call(this, xml);
+      }
     },
     error: function (xhr, status, error) {
       factRecord[index] = "404";
@@ -120,7 +140,8 @@ function checkResultNodes(factoid, index, callback) {
 function anaxagorasStrategy(factoid, index, xml) {
   $xml = $(xml);
   var sourceTexts = nlp($xml.find("*").children("Description").text()).sentences().data().map((function(a) { return a.text; }));
-
+  sourceTexts.push.apply(sourceTexts, nlp($(pageWideResults).find("*").children("Description").text()).sentences().data().map((function(a) { return a.text; })));
+  
   // Normalize to singular, to digits, to present tense, and expand contractions, then take content words only to compare.
   var nlpFactoid = nlp(factoid);
   nlpFactoid.nouns().toSingular();
@@ -129,6 +150,8 @@ function anaxagorasStrategy(factoid, index, xml) {
   nlpFactoid.contractions().expand();
 
   var factoidParsed = anaxagorasParser(nlpFactoid.out());
+
+  // TODO: Kick off another (blocking) async to get synonyms, then check antonyms/negations.
 
   // Search every source text node recursively and check if all words are present.
   for(i = 0; i < sourceTexts.length; i++) {
