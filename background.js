@@ -72,12 +72,12 @@ function getKeywords(factoid) {
  */
 function verifyFactoids(factoids) {
   if(factoids !== null) {
-    checkResultNodes(pageKeyWords, -1, function(xml) { pageWideResults = xml; });
+    checkResultNodes(pageKeyWords, -1, function(text) { pageWideResults = text; }, function() { /* No-op */ });
     // TODO: Coreference resolution: Replace ambiguous references with look-behind (e.g., pronouns in previous sentence).
     // Maybe do IFF no terms found in sentence, go to previous sentence and pull.  How to determine that is tough...
 
     for(i = 0; i < factoids.length; i++) {
-      checkResultNodes(factoids[i], i, pctCalc);
+      checkResultNodes(factoids[i], i, checkResults, pctCalc);
     }
   }
   else {
@@ -90,44 +90,69 @@ function verifyFactoids(factoids) {
  * Currently uses the DBPedia Lookup endpoint to check if factoids exist in Wiki data:
  * http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryClass=thing&QueryString=exampleText
  */
-function checkResultNodes(factoid, index, callback) {
+function checkResultNodes(factoid, index, callback, callback2) {
   // Take first two keywords or a phrase for now, or default to page keywords.
   var factoidKeywords = getKeywords(factoid);
   if(factoidKeywords == null || factoidKeywords.length == 0) {
     factoidKeywords = getKeywords(pageKeyWords);
     if(factoidKeywords == null || factoidKeywords.length == 0) {
-      var phraseRegex = /[A-Z][a-z]*\s[a-z\s]*[A-Z][a-z]*/;
-      factoidKeywords = pageKeyWords.match(phraseRegex);
+      var keyWords = factoid.split(' ');
+      var keyWordPrefix = anaxagorasParser(keyWords[0] + " " + keyWords[1]);
+      var keyWordSuffix = keyWords.slice(2);
+      var keyWordResult = keyWordPrefix + keyWordSuffix;
+
+      var phraseRegex = /[A-Z][a-z]*\s[a-z\s]{0,10}[A-Z][a-z]*/; // Look for first word or phrase by capital letters.
+
+      factoidKeywords = keyWordResult.match(phraseRegex);
     }
   }
   else {
     factoidKeywords = factoidKeywords[0] + " " + (factoidKeywords[1] && !factoidKeywords[0].includes(" ") ? factoidKeywords[1] : "");
   }
 
+  var sourceURL = "Error: Could not resolve keywords to a URL.";
+
   $.ajax({
     type: "GET",
-    url: "http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryClass=thing&QueryString=" +
+    url: "https://en.wikipedia.org/w/api.php?action=opensearch&pslimit=2&namespace=0&format=json&search=" +
     encodeURIComponent(factoidKeywords),
-    dataType: "xml",
+    dataType: "json",
     async: true,
-    success: function (xml) {
-      if(index >= 0) {
-        callback.call(this, anaxagorasStrategy(factoid, index, xml));
-      }
-      else {
-        // Special case: Get xml for page-wide keywords.
-        callback.call(this, xml);
-      }
+    success: function (json) {
+      sourceURL = json[3][0];
+      callback.call(this, checkResults(sourceURL, factoid, index, callback2));
     },
     error: function (xhr, status, error) {
       factRecord[index] = "404";
       den++; // Still increment that a factoid was processed even with failure.
 
-      console.error("Error: checkResultNodes() AJAX request errored for factoid {" + factoid + "}. Message: " + error +
+      console.error("Error: checkResultNodes() article search request errored for factoid {" + factoid + "}. Message: " + error +
       "." + "\n" + "Site: " + url);
     }
   });
 }
+
+var checkResults = function(sourceURL, factoid, index, callback2) {
+  $.ajax({
+    type: "GET",
+    url: sourceURL,
+    dataType: "text",
+    async: true,
+    success: function (text) {
+      if(index >= 0) {
+        pctCalc(anaxagorasStrategy(factoid, index, $('p, i', $.parseHTML(text)).text()));
+      }
+      else {
+        // Special case: Get xml for page-wide keywords.
+        pctCalc(anaxagorasStrategy(factoid, index, $('p, i', $.parseHTML(text)).text()));
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("Error: checkResultNodes() Wiki article request errored for factoid {" + factoid + "}. Message: " + error +
+      "." + "\n" + "Site: " + url);
+    }
+  });
+};
 
 /*
  * Second major fact-checking algorithm (strategy).
@@ -137,11 +162,11 @@ function checkResultNodes(factoid, index, callback) {
  * Returns a 1 if the factoid appears to be true based on finding keywords in text.
  * Returns a 0 if the factoid appears to be false or conflicted.
  */
-function anaxagorasStrategy(factoid, index, xml) {
-  $xml = $(xml);
-  var sourceTexts = nlp($xml.find("*").children("Description").text()).sentences().data().map((function(a) { return a.text; }));
-  sourceTexts.push.apply(sourceTexts, nlp($(pageWideResults).find("*").children("Description").text()).sentences().data().map((function(a) { return a.text; })));
-  
+function anaxagorasStrategy(factoid, index, text) {
+  //$xml = $(xml);
+  var sourceTexts = nlp(text).sentences().data().map((function(a) { return a.text; }));
+  sourceTexts.push.apply(sourceTexts, nlp(pageWideResults).sentences().data().map((function(a) { return a.text; })));
+
   // Normalize to singular, to digits, to present tense, and expand contractions, then take content words only to compare.
   var nlpFactoid = nlp(factoid);
   nlpFactoid.nouns().toSingular();
@@ -165,6 +190,7 @@ function anaxagorasStrategy(factoid, index, xml) {
     var sourceFact = anaxagorasParser(nlpSource.out());
 
     for(j = 0; j < factoidParsed.length; j++) {
+
       if(sourceFact.includes(factoidParsed[j])) {
         if(j == factoidParsed.length - 1) {
           factRecord[index] = '1';
