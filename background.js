@@ -22,6 +22,9 @@ var num = 0; // Numerator, factoids that are "accurate" (truthful).
 var den = 0; // Denominator, total factoids checked.
 var url = ""; // Store the url of the page being processed.
 
+var worker1 = new Worker('verifyWorker.js');
+var worker2 = new Worker('verifyWorker.js');
+
 // Regex escaper so a string can be passed into an expression object without fail.
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -140,11 +143,12 @@ var checkResults = function(sourceURL, factoid, index, callback2) {
     async: true,
     success: function (text) {
       if(index >= 0) {
-        pctCalc(anaxagorasStrategy(factoid, index, $('p, i', $.parseHTML(text)).text()));
-      }
-      else {
-        // Special case: Get xml for page-wide keywords.
-        pctCalc(anaxagorasStrategy(factoid, index, $('p, i', $.parseHTML(text)).text()));
+        if(index % 2 == 0) {
+          worker1.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text)).text(), "pageWideResults" : pageWideResults });
+        }
+        else {
+          worker2.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text)).text(), "pageWideResults" : pageWideResults });
+        }
       }
     },
     error: function (xhr, status, error) {
@@ -153,58 +157,6 @@ var checkResults = function(sourceURL, factoid, index, callback2) {
     }
   });
 };
-
-/*
- * Second major fact-checking algorithm (strategy).
- * Named after one of the Greek ontologists, Anaxagoras due
- * to the ontology-based algorithm checks on DBPedia.
- *
- * Returns a 1 if the factoid appears to be true based on finding keywords in text.
- * Returns a 0 if the factoid appears to be false or conflicted.
- */
-function anaxagorasStrategy(factoid, index, text) {
-  //$xml = $(xml);
-  var sourceTexts = nlp(text).sentences().data().map((function(a) { return a.text; }));
-  sourceTexts.push.apply(sourceTexts, nlp(pageWideResults).sentences().data().map((function(a) { return a.text; })));
-
-  // Normalize to singular, to digits, to present tense, and expand contractions, then take content words only to compare.
-  var nlpFactoid = nlp(factoid);
-  nlpFactoid.nouns().toSingular();
-  nlpFactoid.values().toNumber();
-  nlpFactoid.sentences().toPresentTense();
-  nlpFactoid.contractions().expand();
-
-  var factoidParsed = anaxagorasParser(nlpFactoid.out());
-
-  // TODO: Kick off another (blocking) async to get synonyms, then check antonyms/negations.
-
-  // Search every source text node recursively and check if all words are present.
-  for(i = 0; i < sourceTexts.length; i++) {
-    // Normalize source facts.
-    var nlpSource = nlp(sourceTexts[i]);
-    nlpSource.nouns().toSingular();
-    nlpSource.values().toNumber();
-    nlpSource.sentences().toPresentTense();
-    nlpSource.contractions().expand();
-
-    var sourceFact = anaxagorasParser(nlpSource.out());
-
-    for(j = 0; j < factoidParsed.length; j++) {
-
-      if(sourceFact.includes(factoidParsed[j])) {
-        if(j == factoidParsed.length - 1) {
-          factRecord[index] = '1';
-          return 1;
-        }
-      }
-      else {
-        break;
-      }
-    }
-  }
-
-  return 0;
-}
 
 /*
  * The parser used for queries and matching factoids with reference text.
@@ -254,13 +206,22 @@ function anaxagorasParser(factoid) {
  * Callback to calculate ratio of factoids verified to
  * total factoids, from checkResultNodes().
  */
-var pctCalc = function(returned_data) {
+var pctCalc = function(returned_data, index) {
   if(returned_data == 1) {
+    factRecord[index] = '1';
     num++;
   }
 
   den++;
 };
+
+worker1.addEventListener('message', function(e) {
+  pctCalc(e.data.isVerified, e.data.index);
+}, false);
+
+worker2.addEventListener('message', function(e) {
+  pctCalc(e.data.isVerified, e.data.index);
+}, false);
 
 /*
  * Listens for the content.js scrape of textual data.
