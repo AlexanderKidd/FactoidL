@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 7/25/19
+ * Revised: 8/11/19
  * Description: Background page worker script.  Will
  * handle the fact-checking tasks and pass it to the UI script (popup.js).
  *
@@ -15,15 +15,17 @@
 
 var scrapedText; // Scraped text from the page to analyze.
 var pageKeyWords; // Used for Google search function on popup.html.
-var pageWideResults; // XML of DBPedia query based on <title> keywords.
+var pageWideResults; // Text of source database query based on <title> keywords.
 var factoids; // scrapedText AFTER parsing into statements.
 var factRecord; // Keep track of which factoids were verified.
 var num = 0; // Numerator, factoids that are "accurate" (truthful).
 var den = 0; // Denominator, total factoids checked.
 var url = ""; // Store the url of the page being processed.
 
+// Spin up workers to help with factoid comparison.
 var worker1 = new Worker('verifyWorker.js');
 var worker2 = new Worker('verifyWorker.js');
+var worker3 = new Worker('verifyWorker.js');
 
 // Regex escaper so a string can be passed into an expression object without fail.
 function escapeRegExp(string) {
@@ -31,12 +33,11 @@ function escapeRegExp(string) {
 }
 
 /*
- * General sentence to factoid parser.
+ * General sentence-to-factoid parser.
  * The ten-character limit was decided upon since most sentences under that are
  * not complete sentences or do not have content worth fact-checking.  The max
  * character limit of 2000 is generous: we are mostly checking modern articles,
  * not Finnegan's Wake.  Also, strip out excessive whitespace.
- * DBPedia seems to take ~4,000 characters max.
  *
  * Returns the sanitized text (factoids).
  */
@@ -58,29 +59,38 @@ function sentenceParse() {
 
 /*
  * This function sifts through the factoid for keywords.
- * This is used in the DBPedia Lookup article query.
+ * This is used for querying the source database.
  *
- * Returns either the factoid split-up by default, or
- * the words deemed important by the query.
+ * Returns an array of string keywords, defaulting to just
+ * the factoid if both keyword extraction functions return empty.
  */
 function getKeywords(factoid) {
-  var keyWords = nlp(factoid).topics().data();
+  var keyWords = nlp(factoid).topics().data().map(function(a) { return a.text.trim(); });
 
-  return keyWords.map(function(a) { return a.text; });
+  if(keyWords.length == 0) {
+    keyWords = socratesParser(factoid);
+
+    if(keyWords.length == 0) {
+      keyWords = factoid.split(" ");
+    }
+  }
+
+  return keyWords;
 }
 
 /*
- * Iterates through factoids and calls checkResultNodes(),
- * which will use the callback pctCalc() to perform the fact counting.
+ * Iterates through factoids and calls queryForSources(),
+ * which kicks off the queries to find the proper source texts
+ * and then the factoid to source comparisons.
  */
 function verifyFactoids(factoids) {
   if(factoids !== null) {
-    checkResultNodes(pageKeyWords, -1, function(text) { pageWideResults = text; }, function() { /* No-op */ });
+    queryForSources(pageKeyWords, -1, function(text) { pageWideResults = text; }); // Find a default source text to look through.
     // TODO: Coreference resolution: Replace ambiguous references with look-behind (e.g., pronouns in previous sentence).
     // Maybe do IFF no terms found in sentence, go to previous sentence and pull.  How to determine that is tough...
 
     for(i = 0; i < factoids.length; i++) {
-      checkResultNodes(factoids[i], i, checkResults, pctCalc);
+      queryForSources(factoids[i], i, getSources);
     }
   }
   else {
@@ -89,31 +99,20 @@ function verifyFactoids(factoids) {
 }
 
 /*
- * A function that returns an array of Wikipedia articles as XML nodes.
- * Currently uses the DBPedia Lookup endpoint to check if factoids exist in Wiki data:
- * http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryClass=thing&QueryString=exampleText
+ * Based on factoid keywords, finds candidate source text (Wikipedia articles)
+ * to use in factoid comparison.
  */
-function checkResultNodes(factoid, index, callback, callback2) {
-  // Take first two keywords or a phrase for now, or default to page keywords.
+function queryForSources(factoid, index, callback) {
   var factoidKeywords = getKeywords(factoid);
-  if(factoidKeywords == null || factoidKeywords.length == 0) {
-    factoidKeywords = getKeywords(pageKeyWords);
-    if(factoidKeywords == null || factoidKeywords.length == 0) {
-      var keyWords = factoid.split(' ');
-      var keyWordPrefix = anaxagorasParser(keyWords[0] + " " + keyWords[1]);
-      var keyWordSuffix = keyWords.slice(2);
-      var keyWordResult = keyWordPrefix + keyWordSuffix;
+  if(factoidKeywords == null || factoidKeywords.length == 0) factoidKeywords = getKeywords(pageKeyWords);
 
-      var phraseRegex = /[A-Z][a-z]*\s[a-z\s]{0,10}[A-Z][a-z]*/; // Look for first word or phrase by capital letters.
-
-      factoidKeywords = keyWordResult.match(phraseRegex);
-    }
+  // Query seems to prefer one or two search terms.
+  if(factoidKeywords[0].indexOf(" ") == -1) {
+    factoidKeywords = (factoidKeywords[0] + " " + factoidKeywords[1]).split(" ");
   }
   else {
-    factoidKeywords = factoidKeywords[0] + " " + (factoidKeywords[1] && !factoidKeywords[0].includes(" ") ? factoidKeywords[1] : "");
+    factoidKeywords = factoidKeywords[0].split(" ").slice(0, 2);
   }
-
-  var sourceURL = "Error: Could not resolve keywords to a URL.";
 
   $.ajax({
     type: "GET",
@@ -122,20 +121,24 @@ function checkResultNodes(factoid, index, callback, callback2) {
     dataType: "json",
     async: true,
     success: function (json) {
-      sourceURL = json[3][0];
-      callback.call(this, checkResults(sourceURL, factoid, index, callback2));
+      var sourceURL = json[3] ? json[3][0] : "";
+      callback.call(this, getSources(sourceURL, factoid, index));
     },
     error: function (xhr, status, error) {
       factRecord[index] = "404";
       den++; // Still increment that a factoid was processed even with failure.
 
-      console.error("Error: checkResultNodes() article search request errored for factoid {" + factoid + "}. Message: " + error +
+      console.error("Error: queryForSources() article search request errored for factoid {" + factoid + "}. Message: " + error +
       "." + "\n" + "Site: " + url);
     }
   });
 }
 
-var checkResults = function(sourceURL, factoid, index, callback2) {
+/*
+ * Loads the corresponding source text from the source URL for the factoid.
+ * Then kicks off a comparison job for one of the web workers.
+ */
+var getSources = function(sourceURL, factoid, index) {
   $.ajax({
     type: "GET",
     url: sourceURL,
@@ -143,16 +146,19 @@ var checkResults = function(sourceURL, factoid, index, callback2) {
     async: true,
     success: function (text) {
       if(index >= 0) {
-        if(index % 2 == 0) {
+        if(index % 2 == 0 && index % 3 != 0) {
           worker1.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text)).text(), "pageWideResults" : pageWideResults });
         }
-        else {
+        else if(index % 2 != 0 && index % 3 == 0) {
           worker2.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text)).text(), "pageWideResults" : pageWideResults });
+        }
+        else {
+          worker3.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text)).text(), "pageWideResults" : pageWideResults });
         }
       }
     },
     error: function (xhr, status, error) {
-      console.error("Error: checkResultNodes() Wiki article request errored for factoid {" + factoid + "}. Message: " + error +
+      console.error("Error: getSources() Wiki article request errored for factoid {" + factoid + "}. Message: " + error +
       "." + "\n" + "Site: " + url);
     }
   });
@@ -160,18 +166,21 @@ var checkResults = function(sourceURL, factoid, index, callback2) {
 
 /*
  * The parser used for queries and matching factoids with reference text.
- * Meant to be paired with anaxagorasStrategy() as the fact-checking algorithm.
+ * Meant to be paired with socratesCompareStrategy() as the fact-checking algorithm.
  * Initially, punctuation is removed and the factoid is split into a token (word) array.
  * Then, unimportant words are replaced, keeping key (important nouns, verbs, adjectives) words as search terms.
  *
- * Returns the parsed factoid string.
+ * Returns an array of strings that are keywords (mostly content words).
  */
-function anaxagorasParser(factoid) {
+function socratesParser(factoid) {
   // Remove punctuation.
   var factoidParsed = factoid.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(" ");
 
   // Replace unimportant words for query/to search results:
   for(k = 0; k < factoidParsed.length; k++) {
+    // Remove whitespace.
+    factoidParsed[k].trim();
+
     // Article words:
     factoidParsed[k] = factoidParsed[k].replace(/\b(a|an|the|this|that|these|those)\b/gi, "");
 
@@ -203,10 +212,9 @@ function anaxagorasParser(factoid) {
 }
 
 /*
- * Callback to calculate ratio of factoids verified to
- * total factoids, from checkResultNodes().
+ * Records and increments verified factoids and total factoids.
  */
-var pctCalc = function(returned_data, index) {
+var recordResults = function(returned_data, index) {
   if(returned_data == 1) {
     factRecord[index] = '1';
     num++;
@@ -215,12 +223,19 @@ var pctCalc = function(returned_data, index) {
   den++;
 };
 
+/*
+ * Receive compared fact results from workers.
+ */
 worker1.addEventListener('message', function(e) {
-  pctCalc(e.data.isVerified, e.data.index);
+  recordResults(e.data.isVerified, e.data.index);
 }, false);
 
 worker2.addEventListener('message', function(e) {
-  pctCalc(e.data.isVerified, e.data.index);
+  recordResults(e.data.isVerified, e.data.index);
+}, false);
+
+worker3.addEventListener('message', function(e) {
+  recordResults(e.data.isVerified, e.data.index);
 }, false);
 
 /*

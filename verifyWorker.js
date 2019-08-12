@@ -1,16 +1,26 @@
+/*
+ * @author Alexander Kidd
+ * Created: 8/1/15
+ * Revised: 8/11/19
+ * Description: Web worker script.  Will
+ * handle the fact-checking tasks and pass it back to the background script.
+ *
+ * WARNING: WEB WORKERS ARE ISOLATED FROM DOM AND OTHER GLOBAL VARS!
+ */
+
 self.importScripts('compromise.min.js');
 
-var pageWideResults = "";
+var pageWideResults = ""; // Pass page-wide info retrieved to worker.
 
 /*
  * The parser used for queries and matching factoids with reference text.
- * Meant to be paired with anaxagorasStrategy() as the fact-checking algorithm.
+ * Meant to be paired with socratesCompareStrategy() as the fact-checking algorithm.
  * Initially, punctuation is removed and the factoid is split into a token (word) array.
  * Then, unimportant words are replaced, keeping key (important nouns, verbs, adjectives) words as search terms.
  *
- * Returns the parsed factoid string.
+ * Returns an array of strings that are keywords (mostly content words).
  */
-function anaxagorasParser(factoid) {
+function socratesParser(factoid) {
   // Remove punctuation.
   var factoidParsed = factoid.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(" ");
 
@@ -47,14 +57,15 @@ function anaxagorasParser(factoid) {
 }
 
 /*
- * Second major fact-checking algorithm (strategy).
- * Named after one of the Greek ontologists, Anaxagoras due
- * to the ontology-based algorithm checks on DBPedia.
+ * Third major fact-checking algorithm (strategy).
+ * Named after Socrates, a major Greek philosopher since
+ * this is a major update that provides some heuristic comparing
+ * by boiling source facts and factoids down to their basic meanings.
  *
  * Returns a 1 if the factoid appears to be true based on finding keywords in text.
  * Returns a 0 if the factoid appears to be false or conflicted.
  */
-function anaxagorasStrategy(factoid, index, text) {
+function socratesCompareStrategy(factoid, index, text) {
   var sourceTexts = nlp(text).sentences().data().map((function(a) { return a.text; }));
   sourceTexts.push.apply(sourceTexts, nlp(pageWideResults).sentences().data().map((function(a) { return a.text; })));
 
@@ -65,9 +76,7 @@ function anaxagorasStrategy(factoid, index, text) {
   nlpFactoid.sentences().toPresentTense();
   nlpFactoid.contractions().expand();
 
-  var factoidParsed = anaxagorasParser(nlpFactoid.out());
-
-  // TODO: Kick off another (blocking) async to get synonyms, then check antonyms/negations.
+  var factoidParsed = socratesParser(nlpFactoid.out());
 
   // Search every source text node recursively and check if all words are present.
   for(i = 0; i < sourceTexts.length; i++) {
@@ -78,10 +87,15 @@ function anaxagorasStrategy(factoid, index, text) {
     nlpSource.sentences().toPresentTense();
     nlpSource.contractions().expand();
 
-    var sourceFact = anaxagorasParser(nlpSource.out());
+    var sourceFact = socratesParser(nlpSource.out().toLowerCase());
 
+    // See if basic premise of factoid is included in any source text.
     for(j = 0; j < factoidParsed.length; j++) {
-      if(sourceFact.includes(factoidParsed[j])) {
+      if(sourceFact.includes(factoidParsed[j].toLowerCase())) {
+        console.log(sourceFact);
+        console.log(j + " " + factoidParsed[j]);
+        console.log(factoidParsed);
+        console.log("Length " + factoidParsed.length);
         if(j == factoidParsed.length - 1) {
           return 1;
         }
@@ -95,7 +109,10 @@ function anaxagorasStrategy(factoid, index, text) {
   return 0;
 }
 
+/*
+ * Receive background script data, call the comparison function, and return the results.
+ */
 self.addEventListener('message', function(e) {
   pageWideResults = e.data.pageWideResults;
-  self.postMessage({ "isVerified" : anaxagorasStrategy(e.data.factoid, e.data.index, e.data.text), "index" : e.data.index });
+  self.postMessage({ "isVerified" : socratesCompareStrategy(e.data.factoid, e.data.index, e.data.text), "index" : e.data.index });
 }, false);

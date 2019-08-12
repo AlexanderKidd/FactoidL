@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 7/11/19
+ * Revised: 8/11/19
  * Description: Script to be injected into
  * page for content scraping.
  *
@@ -28,7 +28,7 @@ $('body > :not(' + blacklist.join(',') + ')').each(function() {
   scrapedText += ' ';
 });
 
-// The page title is usually brief enough for a related article search, otherwise try a factoid.
+// The page title is usually brief enough for a related article search, otherwise try the first factoid.
 var keyWords = $('title').text();
 
 if(!keyWords) {
