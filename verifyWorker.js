@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 8/11/19
+ * Revised: 8/12/19
  * Description: Web worker script.  Will
  * handle the fact-checking tasks and pass it back to the background script.
  *
@@ -92,10 +92,6 @@ function socratesCompareStrategy(factoid, index, text) {
     // See if basic premise of factoid is included in any source text.
     for(j = 0; j < factoidParsed.length; j++) {
       if(sourceFact.includes(factoidParsed[j].toLowerCase())) {
-        console.log(sourceFact);
-        console.log(j + " " + factoidParsed[j]);
-        console.log(factoidParsed);
-        console.log("Length " + factoidParsed.length);
         if(j == factoidParsed.length - 1) {
           return 1;
         }

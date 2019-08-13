@@ -1,7 +1,7 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 8/11/19
+ * Revised: 8/12/19
  * Description: Background page worker script.  Will
  * handle the fact-checking tasks and pass it to the UI script (popup.js).
  *
@@ -85,13 +85,16 @@ function getKeywords(factoid) {
  */
 function verifyFactoids(factoids) {
   if(factoids !== null) {
-    queryForSources(pageKeyWords, -1, function(text) { pageWideResults = text; }); // Find a default source text to look through.
+     // Find a default source text to look through.
+    queryForSources(pageKeyWords, -1, function(text) {
+      pageWideResults = text;
+
+      for(i = 0; i < factoids.length; i++) {
+        queryForSources(factoids[i], i, getSources);
+      }
+    });
     // TODO: Coreference resolution: Replace ambiguous references with look-behind (e.g., pronouns in previous sentence).
     // Maybe do IFF no terms found in sentence, go to previous sentence and pull.  How to determine that is tough...
-
-    for(i = 0; i < factoids.length; i++) {
-      queryForSources(factoids[i], i, getSources);
-    }
   }
   else {
     console.error("Error: verifyFactoids() had undefined or no factoids to check.");
@@ -154,6 +157,11 @@ var getSources = function(sourceURL, factoid, index) {
         }
         else {
           worker3.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text)).text(), "pageWideResults" : pageWideResults });
+        }
+      }
+      else {
+        if(index == -1) {
+          pageWideResults = $('p, i', $.parseHTML(text)).text();
         }
       }
     },

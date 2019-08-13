@@ -38,6 +38,6 @@ Alexander Kidd (Lead Dev)
 ## Special Thanks To
 * [Compromise.js](https://github.com/spencermountain/compromise) (Awesome all-purpose NLP for js)
 
-* [DBPedia](https://wiki.dbpedia.org/) (Wikipedia in a database!)
+* [Wikipedia](https://wikimediafoundation.org/about/mission/) (Crowd-sourced information!)
 
 * [JQuery](https://jquery.com/) (Who said you didn't need it?)
