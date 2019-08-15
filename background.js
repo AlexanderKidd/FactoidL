@@ -260,7 +260,7 @@ chrome.runtime.onMessage.addListener(
       factoids = sentenceParse();
       factRecord = factoids ? ['0'.repeat(factoids.length)] : [];
 
-      verifyFactoids(factoids);
+      if(factoids && factoids.length > 0) verifyFactoids(factoids);
     }
 
     // Mainly so Chrome doesn't complain the sender didn't receive a response.

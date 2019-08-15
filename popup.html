@@ -1,7 +1,7 @@
 <!--
     @author: Alexander Kidd
     Created: 8/1/15
-    Revised: 5/13/18
+    Revised: 8/14/19
     Description: The main popup body,
     which will display results for the page in question.
 -->
@@ -18,26 +18,33 @@
         <script type="text/javascript" src="popup.js"></script>
 
         <!-- Origin and amount of factoids checked: -->
-        <h2 align="center";>
-            <span id="fact_text" style="color:#000000;"></span>
+        <h2 align="center">
+            <span id="fact_text" style="color:#000000;">Click "Check Factoids" To Begin.</span>
             <br>
-            <span id="fact_num"; style="color:#267F00;font-weight:bold;font-size:125%;"></span>
+            <span id="fact_num" style="color:#267F00;font-weight:bold;font-size:125%;"></span>
         </h2>
     </head>
 
     <body>
-        <canvas id="myCanvas" width="200" height="200">
-        Your browser does not support the HTML5 canvas tag.</canvas>
 
-        <h3>
-          <a href="#" id="links" target="_blank" style="color:black;text-decoration:none;">
-            <!-- Loaded dynamically via popup script -->
-          </a>
-          <a id="facts" target="_blank" style="color:black;text-decoration:none;float:right;cursor:pointer;">
-            <!-- Loaded dynamically via popup script -->
-          </a>
-        </h3>
+      <canvas id="myCanvas" width="200" height="200" style="display: none;">
+      Your browser does not support the HTML5 canvas tag.</canvas>
 
-        <div id="factList" style="display:block;width:200px;word-wrap:break-word;"></div>
+      <div id="start_div" align="center">
+        <img id="factoidl_icon" src="factoidL_icon48.png" alt="FactoidL Icon" style="padding-bottom: 75px; padding-top: 50px;"></img>
+        <br>
+        <button id="check_button" style="background:#4ED25E; border-radius: 6px; font-size: 20px;">Check Factoids</button>
+      </div>
+
+      <h3>
+        <a href="#" id="links" target="_blank" style="color:black;text-decoration:none;">
+          <!-- Loaded dynamically via popup script -->
+        </a>
+        <a id="facts" target="_blank" style="color:black;text-decoration:none;float:right;cursor:pointer;">
+          <!-- Loaded dynamically via popup script -->
+        </a>
+      </h3>
+
+      <div id="factList" style="display:block;width:200px;word-wrap:break-word;"></div>
     </body>
 </html>

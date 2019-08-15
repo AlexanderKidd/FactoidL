@@ -1,20 +1,24 @@
 /*
  * @author Alexander Kidd
  * Created: 8/1/15
- * Revised: 7/25/19
+ * Revised: 8/14/19
  * Description: Main UI and helper functions
  * for fact-checking program pop-up.
  *
- * Confirmed Factoid: A statement that has been
- * verified by the fact-checking algorithm as true
- * for all intents and purposes.
+ * Verified Factoid: A statement that has been
+ * verified by the fact-checking algorithm/source used
+ * as true for all intents and purposes.
  */
 
+var url;
 var parsedData;
 var factRecord;
 var totalFactoids;
 var keyWords;
 var factPct = -1;
+
+var pollInterval;
+var buildUIInterval;
 
 var isFactListVisible = false;
 
@@ -23,21 +27,38 @@ var loadStartAngle = 0;
 var loadInc = 0;
 
 /*
- * Pulls results once per popup window load from background.js script.
- * Currently, calculates the percentage of "correct" factoids to total factoids.
+ * Pulls in the results once per popup window load from background.js script.
+ * Currently, calculates the percentage of "correct" (verified) factoids to total factoids.
  */
 function pollFactData() {
   var bg = chrome.extension.getBackgroundPage();
 
   if(bg) {
+    url = bg.url;
     parsedData = bg.factoids;
     factRecord = bg.factRecord;
     keyWords = bg.pageKeyWords;
 
-    if(bg.factoids) {
-      if(bg.factoids.length == bg.den) {
-        totalFactoids = bg.den;
-        factPct = bg.num / bg.den;
+    // Default error if data could not be scraped or no data.
+    if(bg.scrapedText == "") {
+      clearInterval(buildUIInterval);
+      clearInterval(pollInterval);
+
+      $('#factoidl_icon').hide();
+      $('#check_button').hide();
+      $('#myCanvas').hide();
+      $('#fact_num').hide();
+      $('#links').hide();
+      $('#facts').hide();
+      document.getElementById("fact_text").style.color="#AD0000";
+      document.getElementById("fact_text").innerHTML = "No content found.<br><br>Try refreshing the page.";
+    }
+    else {
+      if(bg.factoids) {
+        if(bg.factoids.length == bg.den) {
+          totalFactoids = bg.den;
+          factPct = bg.num / bg.den;
+        }
       }
     }
   }
@@ -51,8 +72,8 @@ function degreesToRadians(degrees) {
 }
 
 /*
- * Responsible for some calculation and all of the logic of drawing the
- * main statistic as a pie chart: a percentage of confirmed factoids to total factoids checked.
+ * Responsible for composing main statistic as a pie chart:
+ * a percentage of verified factoids to total factoids checked.
  */
 function drawPieChart() {
   var canvas = document.getElementById("myCanvas");
@@ -62,7 +83,7 @@ function drawPieChart() {
   var centerY = Math.floor(canvas.height / 2);
   var radius = Math.floor(canvas.width / 3);
 
-  // Filling "accuracy" percentage of pie chart starting at 12 o'clock.
+  // Filling verified percentage of pie chart starting at 12 o'clock.
   var percentage = factPct;
   var startingAngle = Math.PI * 1.5;
   var arcSize = degreesToRadians(percentage * 360); // Multiply % by 360 degrees for proportion of circle.
@@ -125,7 +146,7 @@ function drawPieChart() {
     ctx.fillStyle = "#000000";
     ctx.fillText("Loading...", centerX, centerY + 15);
 
-    loadInc = (loadInc + 1) % 100;
+    loadInc = (loadInc + 1) % (134);
   }
   else {
     ctx.fillText(Math.round(percentage * 100) + "%", centerX, centerY + 15);
@@ -141,9 +162,8 @@ function drawPieChart() {
  */
 function buildUI() {
   var facts = document.getElementById('facts');
-  document.getElementById("fact_num").innerHTML = parsedData.length.toLocaleString();
-  document.getElementById("links").innerHTML = "<img border=\"0\" alt=\"Google Search\" src=\"search_icon_16x16.png\" width=\"16\" height=\"16\" style=\"vertical-align:-3px;\"> Related";
-  document.getElementById("facts").innerHTML = "Factoids <img border=\"0\" alt=\"Google Search\" src=\"fact_icon_16x16.png\" width=\"16\" height=\"16\" style=\"vertical-align:-3px;\">";
+
+  if(parsedData) setAnalysisUI(); // Transition from initial screen to factoid analysis UI.
 
   drawPieChart();
 
@@ -155,7 +175,7 @@ function buildUI() {
     $(list).css("margin", "0");
     list.id = "genList";
 
-    if(!isFactListVisible) {
+    if(!isFactListVisible && parsedData && parsedData.length > 0) {
       for(var i = 0; i < parsedData.length; i++) {
         var factItem = document.createElement('li');
         var factError = document.createElement('span');
@@ -203,45 +223,70 @@ function buildUI() {
 }
 
 /*
- * Called to scrape page content when this script is active.
- * Currently, no validation for the page to be fully loaded:
- * page content is processed on a rolling basis.
+ * Called to kick off scraping the page, polling the scraped text processing,
+ * and refreshing the UI.
  */
- chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
-   chrome.tabs.executeScript(tabArray[0].id, {file: "content.js"});
- });
+function startFactCheck() {
+  chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
+    chrome.tabs.executeScript({file: "jquery-1.11.3.min.js"}, function() {
+      chrome.tabs.executeScript({file: "content.js"});
+    });
+  });
+
+  // Query the background script for factoid data.  This should probably be a listener of sorts.
+  pollFactData();
+  clearInterval(pollInterval);
+  pollInterval = setInterval(pollFactData, 500);
+
+  // Continuously build/update the UI as factoid data is processed.
+  buildUI();
+  clearInterval(buildUIInterval);
+  buildUIInterval = setInterval(buildUI, 250);
+}
+
+function setAnalysisUI() {
+  $('#factoidl_icon').hide();
+  $('#myCanvas').show();
+
+  document.getElementById("fact_text").style.color="#000000";
+  document.getElementById("fact_text").innerHTML = "Factoids checked at:" +
+  "<span id=\"current-link\" title=\"" + url + "\" style=\"display:block;width:200px;overflow:hidden;text-overflow:ellipsis;font-size:75%;\">" +
+  url + "</span>";
+
+  document.getElementById("fact_num").innerHTML = parsedData.length.toLocaleString();
+  document.getElementById("links").innerHTML = "<img border=\"0\" alt=\"Google Search\" src=\"search_icon_16x16.png\" width=\"16\" height=\"16\" style=\"vertical-align:-3px;\"> Related";
+  document.getElementById("facts").innerHTML = "Factoids <img border=\"0\" alt=\"Google Search\" src=\"fact_icon_16x16.png\" width=\"16\" height=\"16\" style=\"vertical-align:-3px;\">";
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var checkButton = document.getElementById('check_button');
+    // onClick logic:
+    checkButton.addEventListener('click', function() {
+        startFactCheck();
+    });
+});
 
 /*
  * Called when the popup window is loaded.
  * Kicks off processing the current tab's page and building the UI.
  */
 window.onload = function displayUI() {
-  // Default error if data could not be collected for building the UI.
-  document.getElementById("fact_text").style.color="#AD0000";
-  document.getElementById("fact_text").innerHTML = "No content found.<br><br>Try refreshing the page.";
-
-  // Query the background script for factoid data.  This should probably be a listener of sorts.
   pollFactData();
-  setInterval(pollFactData, 500);
 
+  // Skip initial screen if already processing a page.
   if(parsedData) {
-    // Check the link of the page being analyzed.  If it matches the active tab, display results.
-    // Otherwise, you can assume the results are old (i.e., from another page, which may be confusing to the user).
-    chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
-      if(chrome.extension.getBackgroundPage().url == tabArray[0].url) {
-        document.getElementById("fact_text").style.color="#000000";
-        document.getElementById("fact_text").innerHTML = "Factoids checked at:" +
-        "<span id=\"current-link\" title=\"" + tabArray[0].url + "\" style=\"display:block;width:200px;overflow:hidden;text-overflow:ellipsis;font-size:75%;\">" +
-        tabArray[0].url + "</span>";
+    if(parsedData.length > 0) {
+      setAnalysisUI();
 
-        // Continuously build/update the UI as facotid data is processed.
-        buildUI();
-        setInterval(buildUI, 1000);
-      }
-      else {
-        document.getElementById("fact_text").style.color="#AD0000";
-        document.getElementById("fact_text").innerHTML = "Tab switched.<br><br>Refresh the page for a new fact check.";
-      }
-    });
+      // Query the background script for factoid data.  This should probably be a listener of sorts.
+      pollFactData();
+      clearInterval(pollInterval);
+      pollInterval = setInterval(pollFactData, 500);
+
+      // Continuously build/update the UI as factoid data is processed.
+      buildUI();
+      clearInterval(buildUIInterval);
+      buildUIInterval = setInterval(buildUI, 250);
+    }
   }
 };
