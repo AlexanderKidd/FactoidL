@@ -110,7 +110,7 @@ function queryForSources(factoid, index, callback) {
   if(factoidKeywords == null || factoidKeywords.length == 0) factoidKeywords = getKeywords(pageKeyWords);
 
   // Query seems to prefer one or two search terms.
-  if(factoidKeywords[0].indexOf(" ") == -1) {
+  if(factoidKeywords[0].indexOf(" ") == -1 && factoidKeywords.length > 1 && factoidKeywords[1] && factoidKeywords[1] != factoidKeywords[0]) {
     factoidKeywords = (factoidKeywords[0] + " " + factoidKeywords[1]).split(" ");
   }
   else {
@@ -150,18 +150,18 @@ var getSources = function(sourceURL, factoid, index) {
     success: function (text) {
       if(index >= 0) {
         if(index % 2 == 0 && index % 3 != 0) {
-          worker1.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text)).text(), "pageWideResults" : pageWideResults });
+          worker1.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text.replace(/<img\b[^>]*>/ig, ''))).text(), "pageWideResults" : pageWideResults });
         }
         else if(index % 2 != 0 && index % 3 == 0) {
-          worker2.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text)).text(), "pageWideResults" : pageWideResults });
+          worker2.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text.replace(/<img\b[^>]*>/ig, ''))).text(), "pageWideResults" : pageWideResults });
         }
         else {
-          worker3.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text)).text(), "pageWideResults" : pageWideResults });
+          worker3.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text.replace(/<img\b[^>]*>/ig, ''))).text(), "pageWideResults" : pageWideResults });
         }
       }
       else {
         if(index == -1) {
-          pageWideResults = $('p, i', $.parseHTML(text)).text();
+          pageWideResults = $('p, i', $.parseHTML(text.replace(/<img\b[^>]*>/ig, ''))).text();
         }
       }
     },
