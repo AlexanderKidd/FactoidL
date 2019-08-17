@@ -87,11 +87,11 @@ function socratesCompareStrategy(factoid, index, text) {
     nlpSource.sentences().toPresentTense();
     nlpSource.contractions().expand();
 
-    var sourceFact = socratesParser(nlpSource.out().toLowerCase());
+    var sourceFact = socratesParser(nlpSource.out().toLowerCase().trim());
 
     // See if basic premise of factoid is included in any source text.
     for(j = 0; j < factoidParsed.length; j++) {
-      if(sourceFact.includes(factoidParsed[j].toLowerCase())) {
+      if(sourceFact.includes(factoidParsed[j].toLowerCase().trim())) {
         if(j == factoidParsed.length - 1) {
           return 1;
         }
