@@ -22,7 +22,7 @@ var pageWideResults = ""; // Pass page-wide info retrieved to worker.
  */
 function socratesParser(factoid) {
   // Remove punctuation.
-  var factoidParsed = factoid.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(" ");
+  var factoidParsed = factoid.replace(/[.,\/#!$%\^&\*;:{}=\-_`~\]\[()]/g, "").split(" ");
 
   // Replace unimportant words for query/to search results:
   for(k = 0; k < factoidParsed.length; k++) {
@@ -66,8 +66,8 @@ function socratesParser(factoid) {
  * Returns a 0 if the factoid appears to be false or conflicted.
  */
 function socratesCompareStrategy(factoid, index, text) {
-  var sourceTexts = nlp(text).sentences().data().map((function(a) { return a.text; }));
-  sourceTexts.push.apply(sourceTexts, nlp(pageWideResults).sentences().data().map((function(a) { return a.text; })));
+  var sourceTexts = nlp(text.replace(/\./g, '. ')).sentences().data().map((function(a) { return a.text; }));
+  sourceTexts.push.apply(sourceTexts, nlp(pageWideResults.replace(/\./g, '. ')).sentences().data().map((function(a) { return a.text; })));
 
   // Normalize to singular, to digits, to present tense, and expand contractions, then take content words only to compare.
   var nlpFactoid = nlp(factoid);

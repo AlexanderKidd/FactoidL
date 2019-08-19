@@ -150,18 +150,18 @@ var getSources = function(sourceURL, factoid, index) {
     success: function (text) {
       if(index >= 0) {
         if(index % 2 == 0 && index % 3 != 0) {
-          worker1.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text.replace(/<img\b[^>]*>/ig, ''))).text(), "pageWideResults" : pageWideResults });
+          worker1.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text.replace(/<img\b[^>]*>/ig, '').replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/igm, ''))).text(), "pageWideResults" : pageWideResults });
         }
         else if(index % 2 != 0 && index % 3 == 0) {
-          worker2.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text.replace(/<img\b[^>]*>/ig, ''))).text(), "pageWideResults" : pageWideResults });
+          worker2.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text.replace(/<img\b[^>]*>/ig, '').replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/igm, ''))).text(), "pageWideResults" : pageWideResults });
         }
         else {
-          worker3.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text.replace(/<img\b[^>]*>/ig, ''))).text(), "pageWideResults" : pageWideResults });
+          worker3.postMessage({ "factoid" : factoid, "index" : index, "text" : $('p, i', $.parseHTML(text.replace(/<img\b[^>]*>/ig, '').replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/igm, ''))).text(), "pageWideResults" : pageWideResults });
         }
       }
       else {
         if(index == -1) {
-          pageWideResults = $('p, i', $.parseHTML(text.replace(/<img\b[^>]*>/ig, ''))).text();
+          pageWideResults = $('p, i', $.parseHTML(text.replace(/<img\b[^>]*>/ig, '').replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/igm, ''))).text();
         }
       }
     },
@@ -182,7 +182,7 @@ var getSources = function(sourceURL, factoid, index) {
  */
 function socratesParser(factoid) {
   // Remove punctuation.
-  var factoidParsed = factoid.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(" ");
+  var factoidParsed = factoid.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\]\[]/g, "").split(" ");
 
   // Replace unimportant words for query/to search results:
   for(k = 0; k < factoidParsed.length; k++) {
