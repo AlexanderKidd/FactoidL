@@ -228,10 +228,16 @@ function buildUI() {
  */
 function startFactCheck() {
   chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
-    chrome.tabs.executeScript({file: "jquery-1.11.3.min.js"}, function() {
-      chrome.tabs.executeScript({file: "content.js"});
-    });
+    if(tabArray && tabArray.length > 0) {
+      chrome.runtime.sendMessage({newCheck: true, url: tabArray[0].url},
+        function (response) {
+           chrome.tabs.executeScript({file: "jquery-1.11.3.min.js"}, function() {
+             chrome.tabs.executeScript({file: "content.js"});
+           });
+        });
+    }
   });
+
 
   // Query the background script for factoid data.  This should probably be a listener of sorts.
   pollFactData();

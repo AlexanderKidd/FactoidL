@@ -67,7 +67,7 @@ function socratesParser(factoid) {
  */
 function socratesCompareStrategy(factoid, index, text) {
   var sourceTexts = nlp(text.replace(/\./g, '. ')).sentences().data().map((function(a) { return a.text; }));
-  sourceTexts.push.apply(sourceTexts, nlp(pageWideResults.replace(/\./g, '. ')).sentences().data().map((function(a) { return a.text; })));
+  if(pageWideResults) sourceTexts.push.apply(sourceTexts, nlp(pageWideResults.replace(/\./g, '. ')).sentences().data().map((function(a) { return a.text; })));
 
   // Normalize to singular, to digits, to present tense, and expand contractions, then take content words only to compare.
   var nlpFactoid = nlp(factoid);

@@ -20,7 +20,8 @@ var factoids; // scrapedText AFTER parsing into statements.
 var factRecord; // Keep track of which factoids were verified.
 var num = 0; // Numerator, factoids that are "accurate" (truthful).
 var den = 0; // Denominator, total factoids checked.
-var url = ""; // Store the url of the page being processed.
+var url = "-1"; // Store the url of the page being processed.
+var alreadyChecking = false; // Track whether this url is already checked or it is being checked.
 
 // Spin up workers to help with factoid comparison.
 var worker1 = new Worker('verifyWorker.js');
@@ -251,16 +252,22 @@ worker3.addEventListener('message', function(e) {
  */
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-    if(request.url != url) {
+    if(request.newCheck == true) {
       url = request.url;
-      num = 0;
-      den = 0;
-      scrapedText = request.data;
-      pageKeyWords = request.tags;
-      factoids = sentenceParse();
-      factRecord = factoids ? ['0'.repeat(factoids.length)] : [];
+      alreadyChecking = false;
+    }
+    else {
+      if(request.url == url && !alreadyChecking) {
+        num = 0;
+        den = 0;
+        scrapedText = request.data;
+        pageKeyWords = request.tags;
+        factoids = sentenceParse();
+        factRecord = factoids ? ['0'.repeat(factoids.length)] : [];
+        alreadyChecking = true;
 
-      if(factoids && factoids.length > 0) verifyFactoids(factoids);
+        if(factoids && factoids.length > 0) verifyFactoids(factoids);
+      }
     }
 
     // Mainly so Chrome doesn't complain the sender didn't receive a response.
