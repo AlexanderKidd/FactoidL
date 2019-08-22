@@ -11,7 +11,7 @@
 // Blacklist (remove) content that probably doesn't need to be checked, like dateline and byline classes (i.e., visible plaintext).
 // Decided against a whitelist since some sites have custom tags that are completely valid (e.g., <article>).
 var blacklist = ['div[class*="nav"]', '.byline', '.dateline', '.date', '.toc', 'applet', 'area', 'audio', 'base', 'basefont', 'canvas', 'embed', 'frame',
-  'frameset', 'head', 'h2', 'h3', 'h4', 'h5', 'h6', 'iframe', 'link', 'meta', 'noscript', 'object', 'param', 'progress', 'script', 'source', 'style', 'svg', 'track', 'video'];
+  'frameset', 'head', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'iframe', 'link', 'meta', 'noscript', 'object', 'param', 'progress', 'script', 'source', 'style', 'svg', 'track', 'video'];
 
 // Text scrapes based on HTML tags.
 var scrapedText = '';
@@ -20,6 +20,12 @@ var scrapedText = '';
 $.fn.ignore = function(sel) {
   return this.clone().find(sel || ">*").remove().end();
 };
+
+// Start with main header text, since this usually isn't followed by punctuation.
+var headerText = $('h1').text();
+if(headerText) {
+  scrapedText += headerText + ".";
+}
 
 // Essentially, take the first level of whitelisted elements and ignore blacklisted, then do the same for the contents of each.
 $('body > :not(' + blacklist.join(',') + ')').each(function() {
