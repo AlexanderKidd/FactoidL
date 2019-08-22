@@ -31,6 +31,25 @@ $('body > :not(' + blacklist.join(',') + ')').each(function() {
 // The page title is usually brief enough for a related article search, otherwise try the first factoid.
 var keyWords = $('title').text();
 
+if(keyWords.includes(" - ")) {
+  var tempTitle = keyWords.split(" - ");
+  if(tempTitle[0].length > tempTitle[1].length) {
+    keyWords = tempTitle[0];
+  }
+  else {
+    keyWords = tempTitle[1];
+  }
+}
+else if(keyWords.includes(" | ")) {
+  var tempTitle = keyWords.split(" | ");
+  if(tempTitle[0].length > tempTitle[1].length) {
+    keyWords = tempTitle[0];
+  }
+  else {
+    keyWords = tempTitle[1];
+  }
+}
+
 if(!keyWords) {
 	if(scrapedText.indexOf('.') != -1) {
 		keyWords = scrapedText.substring(0, scrapedText.indexOf('.'));

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <!--
+       @author: Alexander Kidd
+			 Created: 8/21/19
+			 Revised: 8/21/19
+			 Description: FactoidL fact checker validation tests
+			 (tests different fact-checking scenarios).
+			 Insert variations of factoids for the fact-checking
+			 algorithm to verify the correct percentage is calculated.
+			 The difficulty of the factoid (sentence) should increase in descending order.
+	-->
+	<head>
+		<!-- Don't let factoids default on title being of the same topic. -->
+		<title>FactoidL Validation Tests Page - No Help From Title!</title>
+	</head>
+	<body>
+		<h2>An Unhelpful Header For The Factoids Below</h2>
+
+		<ul style="list-style: none;">
+			<!-- Fairly simple, undeniable fact, slight ambiguity in "President" of what. -->
+			<li><span class="byline true">✅</span>George Washington was the first President.</li>
+
+			<br>
+
+			<!-- Fairly simple, patently false factoid, slight ambiguity in "President" of what. -->
+			<li><span class="byline false">❌</span>George Washington was the third President.</li>
+
+		</ul>
+
+		<!-- ################################################################################################### -->
+		<!--  ~ Assert current percentage displayed: Only 1 verified out of only 2 factoids looked up == 50% ~ -->
+		<!-- ################################################################################################### -->
+	</body>
+</html>

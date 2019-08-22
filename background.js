@@ -110,7 +110,7 @@ function queryForSources(factoid, index, callback) {
   var factoidKeywords = getKeywords(factoid);
   if(factoidKeywords == null || factoidKeywords.length == 0) factoidKeywords = getKeywords(pageKeyWords);
 
-  // Query seems to prefer one or two search terms.
+  // Query seems to prefer one or two search terms.  Put two array elements together if there aren't two in the first element.
   if(factoidKeywords[0].indexOf(" ") == -1 && factoidKeywords.length > 1 && factoidKeywords[1] && factoidKeywords[1] != factoidKeywords[0]) {
     factoidKeywords = (factoidKeywords[0] + " " + factoidKeywords[1]).split(" ");
   }
