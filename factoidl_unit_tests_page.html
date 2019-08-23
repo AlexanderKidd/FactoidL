@@ -3,7 +3,7 @@
   <!--
        @author: Alexander Kidd
 			 Created: 1/17/16
-			 Revised: 6/19/18
+			 Revised: 8/22/19
 			 Description: FactoidL fact checker unit tests
 			 (tests individual parsing/fact-checking conditions).
 			 Insert variations of text to parse into
@@ -19,6 +19,13 @@
 	<span style="color: #D3D3D3;">(Text outside the head and body tags with no enclosing tags. Chrome throws it into body tag.)</span>
 
 	<body>
+		<!-- ################################ -->
+		<!--  Navbar class tests (no scrape)  -->
+		<!-- ################################ -->
+
+		<div class="navbar" style="border-style: solid; border-width: 3px;">Menu | Example | Navbar | Text</div>
+		<div class="nav-down" style="display: inline; border-style: solid; border-width: 2px;">Nav Drop-down mock up, shouldn't trigger.</div>
+
 		<!-- ########################### -->
 		<!--  Byline/Dateline tag tests  -->
 		<!-- ########################### -->
@@ -38,6 +45,12 @@
 		<div class="date">
 			<b>Actually written 6/5/18.</b>
 		</div>
+
+		<!-- ############################### -->
+		<!--  Table of contents (no scrape)  -->
+		<!-- ############################### -->
+
+		<div class="toc">Table of Contents:</div>
 
 		<!-- ########################## -->
 		<!--  Sentence structure tests  -->
@@ -84,17 +97,18 @@
 			George Washington was the first President, &^ @George% Washing-ton's 2+2 $teeth were# cherry W0W!
 		</p>
 
-		<!-- ########### -->
-		<!--  Tag tests  -->
-		<!-- ########### -->
+		<!-- ############################### -->
+		<!--  Tag tests - Partial whitelist  -->
+		<!-- ############################### -->
 
-		<!-- Assert true on all, just testing tags. -->
+		<!-- Assert true. -->
 		<li>
 			George Washington was the first President.
 		</li>
 
 		<br>
 
+		<!-- Assert true. -->
 		<dt>A term in a term tag.</dt>
 		<dd>
 			George Washington was the first President.
@@ -102,6 +116,7 @@
 
 		<br>
 
+		<!-- Assert true. -->
 		<table>
 			<caption>George Washington was the first President.</caption>
 			<tr>
@@ -112,10 +127,12 @@
 			</tr>
 		</table>
 
+		<!-- Assert true. -->
 		<blockquote>
 			George Washington was the first President.
 		</blockquote>
 
+		<!-- Assert true. -->
 		<abbr>
 			George Washington was the first President.
 		</abbr>
@@ -123,38 +140,142 @@
 		<br>
 		<br>
 
+		<!-- Assert true. -->
 		<address>
 			George Washington was the first President.
 		</address>
 
 		<br>
 
+		<!-- Assert true. -->
 		<cite>
 			George Washington was the first President.
 		</cite>
 
+		<!-- Assert true. -->
 		<h1>
 			George Washington was the first President.
 		</h1>
 
+		<!-- ################################### -->
+		<!--  Tag tests - Blacklist (no scrape)  -->
+		<!-- ################################### -->
+
+		<applet>Example text.</applet>
+
+		<br>
+
+		<area>Example text.</area>
+
+		<br>
+
+		<audio>Example text.</audio>
+
+		<br>
+
+		<base>Example text.</base>
+
+		<br>
+
+		<basefont>Example text.</basefont>
+
+		<br>
+
+		<canvas>Example text.</canvas>
+
+		<br>
+
+		<embed>Example text.</embed>
+
+		<br>
+
+		<frame>Example text.</frame>
+
+		<br>
+
+		<frameset>Example text.</frameset>
+
+		<br>
+
+		<head>Example text.</head>
+
+		<br>
+
+		<iframe>Example text.</iframe>
+
+		<br>
+
+		<link>Example text.</link>
+
+		<br>
+
+		<meta>Example text.</meta>
+
+		<br>
+
+		<noscript>Example text.</noscript>
+
+		<br>
+
+		<object>Example text.</object>
+
+		<br>
+
+		<param>Example text.</param>
+
+		<br>
+
+		<progress>Example text.</progress>
+
+		<br>
+
+		<script>Example text.</script>
+
+		<br>
+
+		<source>Example text.</source>
+
+		<br>
+
+		<style>Example text.</style>
+
+		<br>
+
+		<svg>Example text.</svg>
+
+		<br>
+
+		<track>Example text.</track>
+
+		<br>
+
+		<video>Example text.</video>
+
+		<br>
+
+		<!-- Assert false, no scrape. -->
 		<h2>
-			George Washington was the first President.
+			George Washington was the first President 2.
 		</h2>
 
+		<!-- Assert false, no scrape. -->
 		<h3>
-			George Washington was the first President.
+			George Washington was the first President 3.
 		</h3>
 
+		<!-- Assert false, no scrape. -->
 		<h4>
-			George Washington was the first President.
+			George Washington was the first President 4.
 		</h4>
 
+		<!-- Assert false, no scrape. -->
 		<h5>
-			George Washington was the first President.
+			George Washington was the first President 5.
 		</h5>
 
+		<!-- Assert false, no scrape. -->
 		<h6>
-			George Washington was the first President.
+			George Washington was the first President 6.
 		</h6>
 
 		<!-- ################################################################################################### -->
