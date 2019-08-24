@@ -3,7 +3,7 @@
   <!--
        @author: Alexander Kidd
 			 Created: 8/21/19
-			 Revised: 8/22/19
+			 Revised: 8/23/19
 			 Description: FactoidL fact checker validation tests
 			 (tests different fact-checking scenarios).
 			 Insert variations of factoids for the fact-checking
@@ -15,11 +15,16 @@
 		<title>FactoidL Validation Tests Page - No Help From Title!</title>
 	</head>
 	<body>
-		<h1>An Unhelpful Header For The Factoids Below!</h1>
+		<h1><span class="byline false">❌</span>An Unhelpful Header For The Factoids Below!</h1>
 
 		<ul style="list-style: none;">
 			<!-- Fairly simple, undeniable fact, slight ambiguity in "President" of what. -->
 			<li><span class="byline true">✅</span>George Washington was the first President.</li>
+
+			<br>
+
+			<!-- Check DOUBLE negation of a true factoid. -->
+			<li><span class="byline true">✅</span>George Washington was not not the first President.</li>
 
 			<br>
 
@@ -31,10 +36,15 @@
 			<!-- Conjunction of T AND F.  Should be false just like in logic. -->
 			<li><span class="byline false">❌</span>George Washington was the first President and third President.</li>
 
+			<br>
+
+			<!-- Check negation of a true factoid. -->
+			<li><span class="byline false">❌</span>George Washington was not the first President.</li>
+
 		</ul>
 
 		<!-- ################################################################################################### -->
-		<!--  ~ Assert current percentage displayed: Only 1 verified out of only 3 factoids looked up == 33% ~ -->
+		<!--  ~ Assert current percentage displayed: Only 2 verified out of only 6 factoids looked up == 33% ~ -->
 		<!-- ################################################################################################### -->
 	</body>
 </html>
