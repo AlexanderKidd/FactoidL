@@ -9,21 +9,18 @@ open and accessible to all so they can quickly and accurately gauge how truthful
 human knowledge.
 
 ## How To Use
-The easiest way to use FactoidL is to add the [Chrome Extension](https://chrome.google.com/webstore/detail/factoidl-beta/kilmdgadjedfbopcfbffaeodhamgiadp).
+The easiest way to use FactoidL is to add the extension:
+* [Chrome Extension](https://chrome.google.com/webstore/detail/factoidl-beta/kilmdgadjedfbopcfbffaeodhamgiadp)
 
-Normally, extensions are packed to obfuscate code and so it is condensed into a neat package for downloading from say,
-the Chrome Web Store.  However, if you must add this extension "unpacked" instead, instructions are as follows:
+* [Firefox Extension](https://addons.mozilla.org/en-US/firefox/addon/factoidl-beta/?src=search)
 
-1. Download all of the files in this repo to a local directory on your computer.
-2. Enable Developer Mode in the latest version of Chrome.  It is found under Settings &rarr; Extensions &rarr; Check Developer Mode.
-Do not navigate away from this page.
-3. On the same Extensions page, click "Load unpacked extension..." and select the local directory with all of the FactoidL
-files from step 1.
-4. Now, the FactoidL icon should show next to your omnibox (in the top right, where extensions are usually found).
-5. Navigate to a page (**example_fact_content.html** is provided as an example article that is periodically
-updated to simulate fact-checking a webpage) and click on the FactoidL extension icon.
-6. If an error is shown on the popup, try refreshing the page you are currently on.  Otherwise, statistics about the facts checked
-should show up on the extension popup.
+While not all browsers are supported yet, most major browsers have similar extension APIs.
+Usually you can install unpacked extensions by following a guide like this: https://support.google.com/chrome/a/answer/2714278?hl=en
+
+A new GitHub Pages site has been launched here for the time being: https://alexanderkidd.github.io/
+
+A FactoidL desktop app using Electron has also been created under `factoidl-electron`, just
+download the executable.
 
 ## How To Contribute
 You can contact us at the official email: factoidlproject@gmail.com
