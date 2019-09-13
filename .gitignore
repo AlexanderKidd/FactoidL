@@ -4,3 +4,10 @@
 # Ignore promos (or non-critical) images that take up a lot of space.
 *.JPG
 FactoidL_promo_*.png
+
+# Ignore build dir.
+**/node_modules
+**/release-builds
+
+# No need for logs.
+*.log
