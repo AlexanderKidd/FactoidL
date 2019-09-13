@@ -19,7 +19,7 @@ Usually you can install unpacked extensions by following a guide like this: http
 
 A new GitHub Pages site has been launched here for the time being: https://alexanderkidd.github.io/
 
-A FactoidL desktop app using Electron has also been created under `factoidl-electron`, just
+A FactoidL desktop app using Electron has also been created under `factoidl-desktop`, just
 download the executable.
 
 ## How To Contribute
