@@ -1,0 +1,57 @@
+<!--
+    @author: Alexander Kidd
+    Created: 8/1/15
+    Revised: 8/14/19
+    Description: The main popup body,
+    which will display results for the page in question.
+-->
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <body style="background:#BDC3C7;">
+        <meta charset="UTF-8">
+
+        <title>FactoidL</title>
+
+        <script type="text/javascript" src="jquery-1.11.3.min.js"></script>
+        <script type="text/javascript" src="content.js"></script>
+        <script type="text/javascript" src="index.js"></script>
+
+        <!-- Origin and amount of factoids checked: -->
+        <h2 align="center">
+            <span id="fact_text" style="color:#000000;">Enter Text And Click "Check Factoids" To Begin.</span>
+            <br>
+            <span id="fact_num" style="color:#267F00;font-weight:bold;font-size:125%;"></span>
+        </h2>
+    </head>
+
+    <body>
+      <center>
+        <canvas id="myCanvas" width="200" height="200" style="display: none;">
+        Your browser does not support the HTML5 canvas tag.</canvas>
+
+        <div id="start_div" align="center">
+          <img id="factoidl_icon" src="factoidL_icon48.png" alt="FactoidL Icon" style="padding-bottom: 75px; padding-top: 50px;"></img>
+          <br>
+          <textarea id="fact_box" type="text" placeholder="Enter text to fact check here." style="width: 250px; height: 150px; padding: 0px"></textarea>
+          <br>
+          <br>
+          <button id="check_button" style="background:#4ED25E; border-radius: 6px; font-size: 20px;">Check Factoids</button>
+        </div>
+
+        <div id="loadedPage" style="display: none;"></div>
+
+        <h3>
+          <a href="#" id="links" target="_blank" style="margin-right: 100px; color:black; text-decoration:none;">
+            <!-- Loaded dynamically via popup script -->
+          </a>
+          <a id="facts" target="_blank" style="margin-left: 100px; color:black; text-decoration:none;cursor:pointer;">
+            <!-- Loaded dynamically via popup script -->
+          </a>
+        </h3>
+
+        <div id="factList" style="display:block;width:200px;word-wrap:break-word;"></div>
+      </center>
+    </body>
+</html>
