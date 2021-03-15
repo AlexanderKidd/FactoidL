@@ -3,9 +3,9 @@
 ## About The Tests
 This test suite is meant to be applicable to ANY FactoidL build, and may be useful for other web-based parsers and fact-checkers.
 
-There are both unit and integration tests, as well as validation tests, to verify and validate that FactoidL is working as intended.
+There are both unit and integration tests, as well as acceptance tests, to verify and validate that FactoidL is working as intended.
 
-Tests are based on different aspects of FactoidL, including text parsing, keyword matching, and control flow for the program. 
+Tests are based on different aspects of FactoidL, including text parsing, keyword matching, and control flow for the program.
 
 This file may be updated with more detail on each section at a further time.
 
