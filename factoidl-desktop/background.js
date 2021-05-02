@@ -13,7 +13,7 @@
  * factual based on a common information source.
  */
 
-self.importScripts('compromise.min.js');
+var nlp = require('compromise');
 
 var scrapedText; // Scraped text from the page to analyze.
 var pageKeyWords; // Used for Google search function on popup.html.

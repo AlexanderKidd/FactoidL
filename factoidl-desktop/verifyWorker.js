@@ -8,7 +8,9 @@
  * WARNING: WEB WORKERS ARE ISOLATED FROM DOM AND OTHER GLOBAL VARS!
  */
 
-self.importScripts('compromise.min.js');
+var nlp = require('compromise');
+nlp.extend(require('compromise-numbers'));
+nlp.extend(require('compromise-sentences'));
 
 var pageWideResults = ""; // Pass page-wide info retrieved to worker.
 
