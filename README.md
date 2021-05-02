@@ -2,11 +2,13 @@
 #### Official repo for FactoidL, Automated Fact-Checking for the Web.
 
 ## Overview
-FactoidL is meant to be an open source, free to use codebase to triangulate third-party content with a select group of
-databases (e.g., Wikipedia/DBPedia) in order to test the accuracy of the content.  Essentially, this is an open source
-fact-checking algorithm in various formats (browser extension, mobile apps, web apps, etc.).  The mission is to make fact-checking
+FactoidL is meant to be an open source, free-to-use codebase to triangulate third-party content with a select group of
+source databases (e.g., Wikipedia, DBPedia, Encyclopedia Britannica) in order to test the accuracy of the content.  Essentially, this is an open source
+fact-checking algorithm on various platforms (browser extension, mobile apps, web apps).  The mission is to make fact-checking
 open and accessible to all so they can quickly and accurately gauge how truthful the content they are reading is compared to public
 human knowledge.
+
+⚠️ Disclaimer: This is not (yet) meant to be a full replacement for human-guided fact-checking! ⚠️
 
 ## How To Use
 The easiest way to use FactoidL is to add the extension:
@@ -19,7 +21,9 @@ Usually you can install unpacked extensions by following a guide like this: http
 
 A new GitHub Pages site has been launched here for the time being: https://alexanderkidd.github.io/
 
-A FactoidL desktop app using Electron has also been created under `factoidl-desktop`, download the appropriate executable here: https://github.com/AlexanderKidd/FactoidL/releases
+A FactoidL desktop app using Electron has also been created under `factoidl-desktop`, download the appropriate zip for your platform here and then run the `factoidl-desktop` file: https://github.com/AlexanderKidd/FactoidL/releases 
+
+(Note: The application files have not been signed yet.)
 
 ## How To Contribute
 You can contact us at the official email: factoidlproject@gmail.com
