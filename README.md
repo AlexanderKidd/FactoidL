@@ -11,15 +11,15 @@ human knowledge.
 ⚠️ Disclaimer: This is not (yet) meant to be a full replacement for human-guided fact-checking! ⚠️
 
 ## How To Use
-The easiest way to use FactoidL is to add the extension:
+LIVE DEMO HERE!!! https://alexanderkidd.github.io/
+
+Otherwise, the easiest way to use FactoidL is to add the extension:
 * [Chrome Extension](https://chrome.google.com/webstore/detail/factoidl-beta/kilmdgadjedfbopcfbffaeodhamgiadp)
 
 * [Firefox Extension](https://addons.mozilla.org/en-US/firefox/addon/factoidl-beta/?src=search)
 
 While not all browsers are supported yet, most major browsers have similar extension APIs.
 Usually you can install unpacked extensions by following a guide like this: https://support.google.com/chrome/a/answer/2714278?hl=en
-
-A new GitHub Pages site has been launched here for the time being: https://alexanderkidd.github.io/
 
 A FactoidL desktop app using Electron has also been created under `factoidl-desktop`, download the appropriate zip for your platform here and then run the `factoidl-desktop` file: https://github.com/AlexanderKidd/FactoidL/releases 
 
