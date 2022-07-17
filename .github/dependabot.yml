@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    # Chrome Extension
+    directory: "/factoidl-chrome"
+    schedule:
+      interval: "monthly"
+
+  - package-ecosystem: "npm"
+    # Desktop
+    directory: "/factoidl-desktop"
+    schedule:
+      interval: "monthly"
+
+  - package-ecosystem: "npm"
+    # Firefox
+    directory: "/factoidl-firefox"
+    schedule:
+      interval: "monthly"
+      
+  - package-ecosystem: "npm"
+    # Web
+    directory: "/factoidl-web"
+    schedule:
+      interval: "monthly"
