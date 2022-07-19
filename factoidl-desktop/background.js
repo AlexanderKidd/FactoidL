@@ -15,6 +15,11 @@
 
 var nlp = require('compromise');
 
+// These are from user input.
+var sourceApiUrl;
+var sourceQueryParams;
+var retrieveSourceTextParams;
+
 var scrapedText; // Scraped text from the page to analyze.
 var pageKeyWords; // Used for Google search function on popup.html.
 var pageWideResults; // Text of source database query based on <title> keywords.
@@ -121,8 +126,7 @@ function queryForSources(factoid, index, callback) {
   }
 
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', "https://en.wikipedia.org/w/api.php?action=opensearch&pslimit=2&namespace=0&format=json&search=" +
-  encodeURIComponent(factoidKeywords) + "&origin=*");
+  xhr.open('GET', sourceApiUrl + sourceQueryParams + encodeURIComponent(factoidKeywords));
   xhr.onload = function() {
       if (xhr.status === 200) {
           var json = JSON.parse(xhr.responseText);
@@ -168,7 +172,7 @@ function queryForSources(factoid, index, callback) {
  */
 var getSources = function(sourceTerms, factoid, index) {
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', "https://en.wikipedia.org/w/api.php?format=xml&action=query&prop=extracts&titles=" + sourceTerms + "&redirects=true&origin=*");
+  xhr.open('GET', sourceApiUrl + retrieveSourceTextParams + sourceTerms);
   xhr.onload = function() {
       if (xhr.status === 200) {
           var text = xhr.responseText;
@@ -310,11 +314,12 @@ worker3.addEventListener('message', function(e) {
  */
 self.addEventListener('message',
   function(message) {
-   if(message.data.newCheck == true) {
-     url = message.data.url;
-     alreadyChecking = false;
-   }
-   else if(message.data.pollRequest == true) {
+   // Case not used in FactoidL Desktop.
+   // if(message.data.newCheck == true) {
+   //   url = message.data.url;
+   //   alreadyChecking = false;
+   // }
+   if(message.data.pollRequest == true) {
      self.postMessage({bg : { "url" : url, "factoids" : factoids, "factRecord" : factRecord, "pageKeyWords" : pageKeyWords, "num" : num, "den" : den } });
    }
    else {
@@ -323,6 +328,9 @@ self.addEventListener('message',
        den = 0;
        scrapedText = message.data.contentParse;
        pageKeyWords = message.data.tags;
+       sourceApiUrl = message.data.sourceApiUrl;
+       sourceQueryParams = message.data.sourceQueryParams;
+       retrieveSourceTextParams = message.data.retrieveSourceTextParams;
        factoids = sentenceParse();
        factRecord = factoids ? ['0'.repeat(factoids.length)] : [];
        alreadyChecking = true;
