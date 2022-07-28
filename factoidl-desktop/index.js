@@ -189,8 +189,11 @@ function buildUI() {
         if(factRecord[i] == '1') {
           factBefore = "✅";
         }
-        else {
+        else if(factRecord[i] == '-1') {
           factBefore = "❌";
+        }
+        else {
+          factBefore = "❓";
         }
 
         if(factRecord[i] == "404") {

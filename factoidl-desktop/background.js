@@ -76,7 +76,7 @@ function getKeywords(factoid) {
   var keyWords = nlp(factoid).topics().data().map(function(a) { return a.text.trim(); });
 
   if(keyWords.length == 0) {
-    keyWords = socratesParser(factoid);
+    keyWords = platoParser(factoid);
 
     if(keyWords.length == 0) {
       keyWords = factoid.split(" ");
@@ -237,13 +237,13 @@ var getSources = function(sourceTerms, factoid, index) {
 
 /*
  * The parser used for queries and matching factoids with reference text.
- * Meant to be paired with socratesCompareStrategy() as the fact-checking algorithm.
+ * Meant to be paired with platoCompareStrategy() as the fact-checking algorithm.
  * Initially, punctuation is removed and the factoid is split into a token (word) array.
  * Then, unimportant words are replaced, keeping key (important nouns, verbs, adjectives) words as search terms.
  *
  * Returns an array of strings that are keywords (mostly content words).
  */
-function socratesParser(factoid) {
+function platoParser(factoid) {
   // Remove punctuation.
   var factoidParsed = factoid.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\]\[]/g, "").split(" ");
 
@@ -288,6 +288,10 @@ function socratesParser(factoid) {
 var recordResults = function(returned_data, index) {
   if(returned_data == 1) {
     factRecord[index] = '1';
+    num++;
+  }
+  else if(returned_data == -1) {
+    factRecord[index] = '-1';
     num++;
   }
 
