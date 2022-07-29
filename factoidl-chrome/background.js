@@ -13,6 +13,11 @@
  * factual based on a common information source.
  */
 
+ // These are from user input.
+ var sourceApiUrl;
+ var sourceQueryParams;
+ var retrieveSourceTextParams;
+
 var scrapedText; // Scraped text from the page to analyze.
 var pageKeyWords; // Used for Google search function on popup.html.
 var pageWideResults; // Text of source database query based on <title> keywords.
@@ -69,7 +74,7 @@ function getKeywords(factoid) {
   var keyWords = nlp(factoid).topics().data().map(function(a) { return a.text.trim(); });
 
   if(keyWords.length == 0) {
-    keyWords = socratesParser(factoid);
+    keyWords = platoParser(factoid);
 
     if(keyWords.length == 0) {
       keyWords = factoid.split(" ");
@@ -120,7 +125,7 @@ function queryForSources(factoid, index, callback) {
 
   $.ajax({
     type: "GET",
-    url: "https://en.wikipedia.org/w/api.php?action=opensearch&pslimit=2&namespace=0&format=json&search=" +
+    url: sourceApiUrl + sourceQueryParams +
     encodeURIComponent(factoidKeywords),
     dataType: "json",
     async: true,
@@ -133,7 +138,7 @@ function queryForSources(factoid, index, callback) {
       den++; // Still increment that a factoid was processed even with failure.
 
       console.error("Error: queryForSources() article search request errored for factoid {" + factoid + "}. Message: " + error +
-      "." + "\n" + "Site: " + url);
+      "." + "\n" + "Site: " + url + " Source:" + sourceApiUrl + sourceQueryParams + encodeURIComponent(factoidKeywords));
     }
   });
 }
@@ -175,13 +180,13 @@ var getSources = function(sourceURL, factoid, index) {
 
 /*
  * The parser used for queries and matching factoids with reference text.
- * Meant to be paired with socratesCompareStrategy() as the fact-checking algorithm.
+ * Meant to be paired with platoCompareStrategy() as the fact-checking algorithm.
  * Initially, punctuation is removed and the factoid is split into a token (word) array.
  * Then, unimportant words are replaced, keeping key (important nouns, verbs, adjectives) words as search terms.
  *
  * Returns an array of strings that are keywords (mostly content words).
  */
-function socratesParser(factoid) {
+function platoParser(factoid) {
   // Remove punctuation.
   var factoidParsed = factoid.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\]\[]/g, "").split(" ");
 
@@ -228,6 +233,10 @@ var recordResults = function(returned_data, index) {
     factRecord[index] = '1';
     num++;
   }
+  else if(returned_data == -1) {
+    factRecord[index] = '-1';
+    num++;
+  }
 
   den++;
 };
@@ -255,6 +264,9 @@ chrome.runtime.onMessage.addListener(
     if(request.newCheck == true) {
       url = request.url;
       alreadyChecking = false;
+      sourceApiUrl = request.sourceApiUrl;
+      sourceQueryParams = request.sourceQueryParams;
+      retrieveSourceTextParams = request.retrieveSourceTextParams;
     }
     else {
       if(request.url == url && !alreadyChecking) {
