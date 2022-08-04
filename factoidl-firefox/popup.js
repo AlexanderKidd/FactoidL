@@ -183,8 +183,11 @@ function buildUI() {
         if(factRecord[i] == '1') {
           factBefore = "✅";
         }
-        else {
+        else if(factRecord[i] == '-1') {
           factBefore = "❌";
+        }
+        else {
+          factBefore = "❓";
         }
 
         if(factRecord[i] == "404") {
@@ -227,9 +230,14 @@ function buildUI() {
  * and refreshing the UI.
  */
 function startFactCheck() {
+  var sourceApiUrl = document.getElementById('source_api_box').value;
+  var sourceQueryParams = document.getElementById('query_for_sources_param_box').value;
+  var retrieveSourceTextParams = document.getElementById('retrieve_sources_param_box').value;
+
   chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
     if(tabArray && tabArray.length > 0) {
-      chrome.runtime.sendMessage({newCheck: true, url: tabArray[0].url},
+      chrome.runtime.sendMessage({newCheck: true, url: tabArray[0].url,
+        sourceApiUrl: sourceApiUrl, sourceQueryParams: sourceQueryParams, retrieveSourceTextParams: retrieveSourceTextParams},
         function (response) {
            chrome.tabs.executeScript({file: "jquery-1.11.3.min.js"}, function() {
              chrome.tabs.executeScript({file: "content.js"});
@@ -296,3 +304,13 @@ window.onload = function displayUI() {
     }
   }
 };
+
+document.addEventListener('DOMContentLoaded', function() {
+  var sourceSettings = document.getElementById('sourceSettings');
+  sourceSettings.addEventListener('click', function() {
+    $(this).toggleClass('expanded');
+    $('#source_api_group').toggleClass('expanded');
+    $('#query_for_sources_param_group').toggleClass('expanded');
+    $('#retrieve_sources_param_group').toggleClass('expanded');
+  });
+});

@@ -17,9 +17,40 @@
         <script type="text/javascript" src="jquery-3.4.1.min.js"></script>
         <script type="text/javascript" src="popup.js"></script>
 
+        <style>
+          #source_api_group:not(.expanded) {
+           display:none;
+          }
+
+          #query_for_sources_param_group:not(.expanded) {
+           display:none;
+          }
+
+          #retrieve_sources_param_group:not(.expanded) {
+           display:none;
+          }
+
+          #sourceSettings {
+           display:block;
+           width:0;
+           height:0;
+
+
+           border-top:10px solid transparent;
+           border-bottom:10px solid transparent;
+           border-left:20px solid black;
+          }
+
+          #sourceSettings.expanded {
+           border-left:10px solid transparent;
+           border-right:10px solid transparent;
+           border-top:20px solid black;
+          }
+        </style>
+
         <!-- Origin and amount of factoids checked: -->
         <h2 align="center">
-            <span id="fact_text" style="color:#000000;">Click "Check Factoids" To Begin.</span>
+            <span id="fact_text" style="color:#000000;">FactoidL</span>
             <br>
             <span id="fact_num" style="color:#267F00;font-weight:bold;font-size:125%;"></span>
         </h2>
@@ -32,6 +63,24 @@
 
       <div id="start_div" align="center">
         <img id="factoidl_icon" src="factoidL_icon48.png" alt="FactoidL Icon" style="padding-bottom: 75px; padding-top: 50px;"></img>
+        <br>
+          <table>
+           <tr><th><span id="sourceSettings"></span></th><th><span style="font-size: 10px;">Change Source Settings</span></th></tr>
+           <tr id="source_api_group">
+             <th><label>Source API Url:</label></th>
+             <th><textarea id="source_api_box" type="text" placeholder="Enter your main fact source url here." style="width: 350px; height: 40px; padding: 0px">https://en.wikipedia.org/w/api.php?</textarea></th>
+           </tr>
+           <br>
+           <tr id="query_for_sources_param_group">
+             <th><label>Query For Sources Params:</label></th>
+             <th><textarea id="query_for_sources_param_box" type="text" placeholder="Enter your url params here for the retrieving sources query." style="width: 350px; height: 40px; padding: 0px">action=opensearch&pslimit=2&namespace=0&format=json&origin=*&search=</textarea></th>
+           </tr>
+           <br>
+           <tr id="retrieve_sources_param_group">
+             <th><label>Query To Retrieve Source Text Params:</label></th>
+             <th><textarea id="retrieve_sources_param_box" type="text" placeholder="Enter your params here for the retrieving source text query." style="width: 350px; height: 40px; padding: 0px">format=xml&action=query&prop=extracts&redirects=true&origin=*&titles=</textarea></th>
+           </tr>
+         </table>
         <br>
         <button id="check_button" style="background:#4ED25E; border-radius: 6px; font-size: 20px;">Check Factoids</button>
       </div>
@@ -46,5 +95,7 @@
       </h3>
 
       <div id="factList" style="display:block;width:200px;word-wrap:break-word;"></div>
+
+      <div style="font-size: 10px;">FactoidL v2.5.1 (Plato)</div>
     </body>
 </html>
