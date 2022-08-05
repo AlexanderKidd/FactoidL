@@ -189,8 +189,11 @@ function buildUI() {
         if(factRecord[i] == '1') {
           factBefore = "✅";
         }
-        else {
+        else if(factRecord[i] == '-1') {
           factBefore = "❌";
+        }
+        else {
+          factBefore = "❓";
         }
 
         if(factRecord[i] == "404") {
@@ -234,11 +237,14 @@ function buildUI() {
  */
 function startFactCheck() {
   var factsToCheck = document.getElementById('fact_box').value;
+  var sourceApiUrl = document.getElementById('source_api_box').value;
+  var sourceQueryParams = document.getElementById('query_for_sources_param_box').value;
+  var retrieveSourceTextParams = document.getElementById('retrieve_sources_param_box').value;
 
   var contentParse = contentScrape(factsToCheck, this.url);
 
   // Immediately post relevant data to background.js
-  bgWorker.postMessage({"contentParse" : contentParse.data, "tags" : contentParse.tags, "url" : contentParse.url});
+  bgWorker.postMessage({"contentParse" : contentParse.data, "tags" : contentParse.tags, "url" : contentParse.url, "sourceApiUrl": sourceApiUrl, "sourceQueryParams": sourceQueryParams, "retrieveSourceTextParams": retrieveSourceTextParams});
 
   // Query the background script for factoid data.  This should probably be a listener of sorts.
   pollFactData();
@@ -292,4 +298,14 @@ document.addEventListener('DOMContentLoaded', function() {
     checkButton.addEventListener('click', function() {
         startFactCheck();
     });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  var sourceSettings = document.getElementById('sourceSettings');
+  sourceSettings.addEventListener('click', function() {
+    $(this).toggleClass('expanded');
+    $('#source_api_group').toggleClass('expanded');
+    $('#query_for_sources_param_group').toggleClass('expanded');
+    $('#retrieve_sources_param_group').toggleClass('expanded');
+  });
 });
