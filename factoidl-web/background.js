@@ -332,9 +332,9 @@ self.addEventListener('message',
        den = 0;
        scrapedText = message.data.contentParse;
        pageKeyWords = message.data.tags;
-       sourceApiUrl = request.sourceApiUrl;
-       sourceQueryParams = request.sourceQueryParams;
-       retrieveSourceTextParams = request.retrieveSourceTextParams;
+       sourceApiUrl = message.data.sourceApiUrl;
+       sourceQueryParams = message.data.sourceQueryParams;
+       retrieveSourceTextParams = message.data.retrieveSourceTextParams;
        factoids = sentenceParse();
        factRecord = factoids ? ['0'.repeat(factoids.length)] : [];
        alreadyChecking = true;
