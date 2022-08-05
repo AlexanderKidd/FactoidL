@@ -10,6 +10,17 @@ human knowledge.
 
 ⚠️ **DISCLAIMER**: This is not (yet) meant to be a full replacement for human-guided fact-checking! ⚠️
 
+
+
+## What's New In 2.5 (Plato)
+* Options for changing the source API url (Note: still uses <extract> tags for xml source text results.)
+
+* Each factoid is marked as verified as accurate (✔️) or inaccurate (❌), or unverified (❓).
+
+* Slight boost in algorithm performance, although offset with new verified/unverified checks.
+  
+* Various minor code fixes like upgrading dependencies and script security.
+
 ## How To Use
 LIVE DEMO HERE!!! https://alexanderkidd.github.io/
 
