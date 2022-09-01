@@ -16,7 +16,7 @@
     "compromise": "^13.11.1",
     "compromise-numbers": "^1.4.0",
     "compromise-sentences": "^0.3.0",
-    "electron": "^19.0.8"
+    "electron": "^20.1.1"
   },
   "devDependencies": {
     "electron-packager": "^15.5.1"
