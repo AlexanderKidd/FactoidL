@@ -1,5 +1,5 @@
 # FactoidL
-#### Official repo for FactoidL, Automated Fact-Checking for the Web.
+#### Automating Fact-Checking for the Web (Official Repository). ✅
 
 ## Overview
 FactoidL is meant to be an open source, free-to-use codebase to triangulate third-party content with a select group of
@@ -8,9 +8,9 @@ fact-checking algorithm on various platforms (browser extension, mobile apps, we
 open and accessible to all so they can quickly and accurately gauge how truthful the content they are reading is compared to public
 human knowledge.
 
-⚠️ **DISCLAIMER**: This is not (yet) meant to be a full replacement for human-guided fact-checking! ⚠️
+Slide Deck: https://docs.google.com/presentation/d/1sAzJkmWxV7sSBBiUgJMLMSdAfercLxnaB3VX-NioQeo/
 
-
+⚠️ **DISCLAIMER: Always use a human and other methods to cross-check!** ⚠️
 
 ## What's New In 2.5 (Plato)
 * Options for changing the source API url (Note: still uses <extract> tags for xml source text results.)
@@ -39,9 +39,9 @@ A FactoidL desktop app using Electron has also been created under `factoidl-desk
 ## How To Contribute
 You can contact us at the official email: factoidlproject@gmail.com
 
-We'd love to have those interested/experienced in Natural Language Processing (NLP) areas, like semantic search.  Currently, we are focused on building a Google Chrome extension, a mobile app (PWA), and an Electron app for desktop.
+We'd love to have those interested/experienced in Natural Language Processing (NLP) areas, like semantic search.  Currently, we are focused on building browser extensions, a progressive web app, and a desktop version.
 
-You can also spread the love on [Twitter](https://twitter.com/FactoidL)!
+You can also spread the love on [Bluesky](https://bsky.app/profile/factoidl.bsky.social)! (Or [Twitter](https://twitter.com/FactoidL) if you must.)
 
 ## Contributors
 Alexander Kidd (Lead Dev)
@@ -60,5 +60,5 @@ However, it does interact with other websites such as Wikipedia through requests
 FactoidL in its original, unadulterated form, does not currently collect user data; however, if a website that has sensitive data on it is
 checked, the fact checking algorithm may send part of that data as the query to requested sites such as the Wikipedia lookup.
 
-By using FactoidL, you agree that any content that is fact checked with the FactoidL application(s) in unadulteratred form, is allowed to be transmitted
+By using FactoidL, you agree that any content that is fact-checked with the FactoidL application(s) in unadulteratred form, is allowed to be transmitted
 in said manner, in order to fulfill the fact-checking process.
