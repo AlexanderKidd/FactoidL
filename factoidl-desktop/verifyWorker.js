@@ -13,16 +13,17 @@ nlp.extend(require('compromise-numbers'));
 nlp.extend(require('compromise-sentences'));
 
 var pageWideResults = ""; // Pass page-wide info retrieved to worker.
+var sourceTitles = ""; // Pass selected source subjects to worker.
 
 /*
  * The parser used for queries and matching factoids with reference text.
- * Meant to be paired with platoCompareStrategy() as the fact-checking algorithm.
+ * Meant to be paired with aristotleCompareStrategy() as the fact-checking algorithm.
  * Initially, punctuation is removed and the factoid is split into a token (word) array.
  * Then, unimportant words are replaced, keeping key (important nouns, verbs, adjectives) words as search terms.
  *
  * Returns an array of strings that are keywords (mostly content words).
  */
-function platoParser(factoid, removeArticles) {
+function aristotleParser(factoid, removeArticles) {
   // Remove punctuation.
   var factoidParsed = factoid.replace(/[.,\/#!$%\^&\*;:{}=\-_`~\]\[()]/g, "").split(" ");
 
@@ -69,7 +70,7 @@ function platoParser(factoid, removeArticles) {
 function negationCounter(text) {
   var negationCount = 0;
   for(l = 0; l < text.length; l++) {
-    if(/no|not|none|no one|noone|nobody|nothing|neither|nowhere|never/.test(text[l].toLowerCase())) {
+    if(/^(?:no|not|none|noone|nobody|nothing|neither|nowhere|never)$/.test(text[l].toLowerCase())) {
       negationCount++;
     }
   }
@@ -77,16 +78,24 @@ function negationCounter(text) {
   return negationCount;
 }
 
+function termsMatch(factTerm, sourceTerms) {
+  var normalizedFactTerm = factTerm.toLowerCase().replace(/ies$/, 'y').replace(/s$/, '');
+  return sourceTerms.some(function(sourceTerm) {
+    var normalizedSourceTerm = sourceTerm.toLowerCase().replace(/ies$/, 'y').replace(/s$/, '');
+    return normalizedFactTerm === normalizedSourceTerm;
+  });
+}
+
 /*
  * Third major fact-checking algorithm (strategy).
- * Named after Plato, a major Greek philosopher since
+ * Named after Aristotle, a major Greek philosopher since
  * this is a major update that provides some heuristic comparing
  * by boiling source facts and factoids down to their basic meanings.
  *
  * Returns a 1 if the factoid appears to be true based on finding keywords in text.
  * Returns a 0 if the factoid appears to be false or conflicted.
  */
-function platoCompareStrategy(factoid, index, text) {
+function aristotleCompareStrategy(factoid, index, text) {
   var sourceTexts = nlp(text.replace(/\./g, '. ')).sentences().data().map((function(a) { return a.text; }));
   if(pageWideResults) sourceTexts.push.apply(sourceTexts, nlp(pageWideResults.replace(/\./g, '. ')).sentences().data().map((function(a) { return a.text; })));
 
@@ -97,26 +106,27 @@ function platoCompareStrategy(factoid, index, text) {
   nlpFactoid.sentences().toPresentTense();
   nlpFactoid.contractions().expand();
 
-  var factoidNegations = negationCounter(platoParser(nlpFactoid.out(), false));
+  var factoidNegations = negationCounter(aristotleParser(nlpFactoid.out(), false));
 
-  var factoidParsed = platoParser(nlpFactoid.out(), true);
+  var factoidParsed = aristotleParser(nlpFactoid.out(), true);
 
-  // Search every source text node recursively and check if all words are present.
+  // Prefer the smallest matching window, expanding only when punctuation splits a fact.
+  for(var windowSize = 1; windowSize <= 3; windowSize++) {
   for(i = 0; i < sourceTexts.length; i++) {
     // Normalize source facts.
-    var nlpSource = nlp(sourceTexts[i]);
+    var nlpSource = nlp(sourceTexts.slice(i, i + windowSize).join(' '));
     nlpSource.nouns().toSingular();
     nlpSource.values().toNumber();
     nlpSource.sentences().toPresentTense();
     nlpSource.contractions().expand();
 
-    var sourceFact = platoParser(nlpSource.out().toLowerCase().trim(), false);
+    var sourceFact = aristotleParser((sourceTitles + ' ' + nlpSource.out()).toLowerCase().trim(), false);
 
     var sourceNegations = negationCounter(sourceFact);
 
     // See if basic premise of factoid is included in any source text.
     for(j = 0; j < factoidParsed.length; j++) {
-      if(sourceFact.includes(factoidParsed[j].toLowerCase().trim())) {
+      if(termsMatch(factoidParsed[j].trim(), sourceFact)) {
         // If all factoid words are included in source and this is the last word.
         if(j == factoidParsed.length - 1) {
           if(Math.abs(factoidNegations - sourceNegations) % 2 == 0) {
@@ -132,6 +142,7 @@ function platoCompareStrategy(factoid, index, text) {
       }
     }
   }
+  }
 
   return 0;
 }
@@ -141,5 +152,6 @@ function platoCompareStrategy(factoid, index, text) {
  */
 self.addEventListener('message', function(e) {
   pageWideResults = e.data.pageWideResults;
-  self.postMessage({ "isVerified" : platoCompareStrategy(e.data.factoid, e.data.index, e.data.text), "index" : e.data.index });
+  sourceTitles = e.data.sourceTitles || "";
+  self.postMessage({ "isVerified" : aristotleCompareStrategy(e.data.factoid, e.data.index, e.data.text), "index" : e.data.index });
 }, false);

@@ -9,11 +9,8 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <body style="background:#BDC3C7;">
         <meta charset="UTF-8">
-
         <title>FactoidL</title>
-
         <script type="text/javascript" src="jquery-1.11.3.min.js"></script>
         <script type="text/javascript" src="popup.js"></script>
 
@@ -46,26 +43,118 @@
            border-right:10px solid transparent;
            border-top:20px solid black;
           }
+
+          #sourceSettings.is-disabled,
+          #source_settings_label.is-disabled,
+          #facts.is-disabled {
+           opacity:0.45;
+           cursor:default;
+          }
+
+          #checked_url {
+           box-sizing:border-box;
+           display:block;
+           width:200px;
+           min-height:24px;
+           max-height:24px;
+           margin:6px auto 0;
+           padding:4px 6px;
+           resize:none;
+           overflow:hidden;
+           white-space:nowrap;
+           text-overflow:ellipsis;
+           border:1px solid #7F8C8D;
+           border-radius:3px;
+           background:#ECF0F1;
+           color:#000000;
+           font:11px Arial;
+          }
+
+          #checked_url.expanded {
+           max-height:96px;
+           white-space:normal;
+           overflow:auto;
+          }
+
+          #myCanvas {
+           display:block;
+           margin:0 auto;
+          }
+
+          #factoid_summary {
+           display:none;
+           width:200px;
+           margin:8px auto 0;
+           font:11px Arial;
+          }
+
+          #factoid_summary_labels {
+           display:grid;
+           grid-template-columns:1fr 1fr 1fr;
+           margin-bottom:4px;
+          }
+
+          .factoid_summary_label:nth-child(1) { text-align:left; color:#267F00; }
+          .factoid_summary_label:nth-child(2) { text-align:center; color:#000000; }
+          .factoid_summary_label:nth-child(3) { text-align:right; color:#AD0000; }
+
+          #factoid_summary_bar {
+           display:flex;
+           height:10px;
+           overflow:hidden;
+           border:1px solid #7F8C8D;
+           border-radius:3px;
+           background:#ECF0F1;
+          }
+
+          .factoid_summary_segment { min-width:0; }
+          #factoid_correct_segment { background:#4ED25E; }
+          #factoid_unverified_segment { background:#000000; }
+          #factoid_incorrect_segment { background:#AD0000; }
+
+          .factoid_unverified_marker {
+           color:#000000;
+           font-size:18px;
+           font-weight:bold;
+           line-height:1;
+           vertical-align:-1px;
+          }
         </style>
 
+    </head>
+
+    <body style="background:#BDC3C7;">
         <!-- Origin and amount of factoids checked: -->
         <h2 align="center">
             <span id="fact_text" style="color:#000000;">FactoidL</span>
-            <br>
-            <span id="fact_num" style="color:#267F00;font-weight:bold;font-size:125%;"></span>
         </h2>
-    </head>
 
-    <body>
+      <textarea id="checked_url" rows="1" readonly aria-label="Checked page URL" style="display:none;"></textarea>
 
       <canvas id="myCanvas" width="200" height="200" style="display: none;">
       Your browser does not support the HTML5 canvas tag.</canvas>
 
+      <div id="factoid_summary" aria-label="Factoid verification results">
+        <div id="factoid_summary_labels">
+          <span class="factoid_summary_label" title="Factoids Found Correct">&#10003; <span id="factoid_correct_count">0</span></span>
+          <span class="factoid_summary_label" title="Unverified Factoids">? <span id="factoid_unverified_count">0</span></span>
+          <span class="factoid_summary_label" title="Factoids Found Incorrect">&#10007; <span id="factoid_incorrect_count">0</span></span>
+        </div>
+        <div id="factoid_summary_bar">
+          <span id="factoid_correct_segment" class="factoid_summary_segment"></span>
+          <span id="factoid_unverified_segment" class="factoid_summary_segment"></span>
+          <span id="factoid_incorrect_segment" class="factoid_summary_segment"></span>
+        </div>
+      </div>
+
       <div id="start_div" align="center">
-        <img id="factoidl_icon" src="factoidL_icon48.png" alt="FactoidL Icon" style="padding-bottom: 75px; padding-top: 50px;"></img>
+        <img id="factoidl_icon" src="FactoidL_Logo_Rounded_icon48_2.0_FINAL.png" alt="FactoidL Icon" style="padding-bottom: 75px; padding-top: 50px;"></img>
         <br>
-        <table>
-          <tr><th><span id="sourceSettings"></span></th><th><span style="font-size: 10px;">Change Source Settings</span></th></tr>
+        <button id="check_button" style="background:#4ED25E; border-radius: 6px; font-size: 20px;">Check Factoids</button>
+        <div id="source_error" style="color:#AD0000; display:none; font-size:12px; margin-top:8px;"></div>
+        <br>
+        <table id="settings_table">
+          <tr><th><span id="sourceSettings"></span></th><th><span id="source_settings_label" style="font-size: 10px;">Change Source Settings</span></th></tr>
           <tr id="source_api_group">
             <th><label>Source API Url:</label></th>
             <th><textarea id="source_api_box" type="text" placeholder="Enter your main fact source url here." style="width: 350px; height: 40px; padding: 0px">https://en.wikipedia.org/w/api.php?</textarea></th>
@@ -73,29 +162,27 @@
           <br>
           <tr id="query_for_sources_param_group">
             <th><label>Query For Sources Params:</label></th>
-            <th><textarea id="query_for_sources_param_box" type="text" placeholder="Enter your url params here for the retrieving sources query." style="width: 350px; height: 40px; padding: 0px">action=opensearch&pslimit=2&namespace=0&format=json&origin=*&search=</textarea></th>
+            <th><textarea id="query_for_sources_param_box" type="text" placeholder="Enter your url params here for the retrieving sources query." style="width: 350px; height: 40px; padding: 0px">action=opensearch&limit=2&namespace=0&format=json&origin=*&search=</textarea></th>
           </tr>
           <br>
           <tr id="retrieve_sources_param_group">
             <th><label>Query To Retrieve Source Text Params:</label></th>
-            <th><textarea id="retrieve_sources_param_box" type="text" placeholder="Enter your params here for the retrieving source text query." style="width: 350px; height: 40px; padding: 0px">format=xml&action=query&prop=extracts&redirects=true&origin=*&titles=</textarea></th>
+            <th><textarea id="retrieve_sources_param_box" type="text" placeholder="Enter your params here for the retrieving source text query." style="width: 350px; height: 40px; padding: 0px">format=xml&action=query&prop=extracts&redirects=true&origin=*&explaintext=true&titles=</textarea></th>
           </tr>
         </table>
-        <br>
-        <button id="check_button" style="background:#4ED25E; border-radius: 6px; font-size: 20px;">Check Factoids</button>
       </div>
 
       <h3>
-        <a href="#" id="links" target="_blank" style="color:black;text-decoration:none;">
+        <a href="#" id="links" target="_blank" style="color:black;text-decoration:none;display:none;">
           <!-- Loaded dynamically via popup script -->
         </a>
-        <a id="facts" target="_blank" style="color:black;text-decoration:none;float:right;cursor:pointer;">
+        <a id="facts" target="_blank" style="color:black;text-decoration:none;float:right;cursor:pointer;display:none;">
           <!-- Loaded dynamically via popup script -->
         </a>
       </h3>
 
       <div id="factList" style="display:block;width:200px;word-wrap:break-word;"></div>
 
-      <div style="font-size: 10px;">FactoidL v2.5.1 (Plato)</div>
+      <div style="font-size: 10px;">FactoidL v2.6.1 (Aristotle)</div>
     </body>
 </html>

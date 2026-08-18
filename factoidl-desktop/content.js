@@ -68,7 +68,7 @@ function contentScrape(html, urlScraped) {
   // }
 
   var scrapedText = html;
-  var keyWords = html.slice(0, 3);
+  var keyWords = scrapedText;
 
   // Get the URL of the page being scraped.
   var url = urlScraped;

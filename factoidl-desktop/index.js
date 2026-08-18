@@ -15,18 +15,37 @@ var parsedData = [];
 var factRecord;
 var totalFactoids;
 var keyWords;
+var relatedSearchTerms;
 var factPct = -1;
 
 var pollInterval;
 var buildUIInterval;
 
 var isFactListVisible = false;
+var isFactCheckInProgress = false;
 
 var loadArcSize = degreesToRadians(45);
 var loadStartAngle = 0;
 var loadInc = 0;
 
 var bgWorker = new Worker('background.js');
+
+function updateFactoidSummary() {
+  if (!parsedData || !factRecord) return;
+  var correct = 0, unverified = 0, incorrect = 0;
+  for (var i = 0; i < factRecord.length; i++) {
+    if (factRecord[i] == '1') correct++;
+    else if (factRecord[i] == '-1') incorrect++;
+    else unverified++;
+  }
+  document.getElementById('factoid_correct_count').textContent = correct;
+  document.getElementById('factoid_unverified_count').textContent = unverified;
+  document.getElementById('factoid_incorrect_count').textContent = incorrect;
+  document.getElementById('factoid_correct_segment').style.flexGrow = correct;
+  document.getElementById('factoid_unverified_segment').style.flexGrow = unverified;
+  document.getElementById('factoid_incorrect_segment').style.flexGrow = incorrect;
+  $('#factoid_summary').toggle(correct + unverified + incorrect > 0);
+}
 
 /*
  * Pulls in the results once per popup window load from background.js script.
@@ -44,26 +63,33 @@ bgWorker.onmessage = function(event) {
     parsedData = bg.factoids;
     factRecord = bg.factRecord;
     keyWords = bg.pageKeyWords;
+    relatedSearchTerms = bg.sourceSearchTerms || keyWords;
+    updateFactoidSummary();
 
     // Default error if data could not be scraped or no data.
-    if(!parsedData) {
+    if(!parsedData && bg.completed) {
       clearInterval(buildUIInterval);
       clearInterval(pollInterval);
 
       $('#factoidl_icon').hide();
-      $('#check_button').hide();
       $('#myCanvas').hide();
       $('#fact_num').hide();
       $('#links').hide();
       $('#facts').hide();
+      $('#fact_box').prop('disabled', false);
+      $('#check_button').prop('disabled', false);
+      isFactCheckInProgress = false;
       document.getElementById("fact_text").style.color="#AD0000";
       document.getElementById("fact_text").innerHTML = "No content found.<br><br>Try refreshing the page.";
     }
     else {
       if(bg.factoids) {
-        if(bg.factoids.length == bg.den) {
+        if(bg.completed && bg.factoids.length == bg.den) {
           totalFactoids = bg.den;
-          factPct = bg.num / bg.den;
+          factPct = getFactoidCorrectCount() / bg.den;
+          $('#links, #facts').show();
+          isFactCheckInProgress = false;
+          document.getElementById('fact_box').disabled = false;
         }
       }
     }
@@ -162,6 +188,10 @@ function drawPieChart() {
   }
 }
 
+function getFactoidCorrectCount() {
+  return (factRecord || []).filter(function(result) { return result == '1'; }).length;
+}
+
 /*
  * This builds the main components of the popup UI, assuming valid data has been received
  * from the background script (e.g., not null, not a different url than currently showing).
@@ -169,9 +199,8 @@ function drawPieChart() {
 function buildUI() {
   var facts = document.getElementById('facts');
 
-  document.getElementById("fact_num").innerHTML = parsedData.length.toLocaleString();
-
   drawPieChart();
+  updateFactoidSummary();
 
   // Generate a list of facts so the user knows what was checked and what to disregard.
   facts.onclick = function() {
@@ -193,7 +222,7 @@ function buildUI() {
           factBefore = "❌";
         }
         else {
-          factBefore = "❓";
+          factBefore = "?";
         }
 
         if(factRecord[i] == "404") {
@@ -201,7 +230,13 @@ function buildUI() {
           $(factError).css("color", "#AD0000");
         }
 
-        factItem.append(document.createTextNode(factBefore + " "));
+        if (factBefore === "?") {
+          var unverifiedMarker = document.createElement('span');
+          unverifiedMarker.className = 'factoid_unverified_marker';
+          unverifiedMarker.appendChild(document.createTextNode(factBefore + " "));
+          factItem.appendChild(unverifiedMarker);
+        }
+        else factItem.append(document.createTextNode(factBefore + " "));
         factItem.append(factError);
         factItem.append(document.createTextNode(parsedData[i]));
         $(factItem).css("padding", "5px 0px");
@@ -221,14 +256,7 @@ function buildUI() {
 
   var linkSearch = document.getElementById('links');
 
-  if(keyWords) {
-    keyWords = keyWords.replace(/\s/g, "%20");
-    linkSearch.href = "https://www.google.com/search?q=" + keyWords;
-    $('#links').show();
-  }
-  else {
-    $('#links').hide();
-  }
+  if(relatedSearchTerms) linkSearch.href = "https://www.google.com/search?q=" + encodeURIComponent(relatedSearchTerms);
 }
 
 /*
@@ -242,6 +270,19 @@ function startFactCheck() {
   var retrieveSourceTextParams = document.getElementById('retrieve_sources_param_box').value;
 
   var contentParse = contentScrape(factsToCheck, this.url);
+  parsedData = [];
+  factRecord = [];
+  factPct = -1;
+  totalFactoids = undefined;
+  isFactListVisible = false;
+  $('#factList').empty();
+  $('#factoid_summary').hide();
+  document.getElementById("fact_text").style.color="#000000";
+  document.getElementById("fact_text").textContent = "FactoidL";
+  $('#links, #facts').hide();
+  $('#check_button').prop('disabled', true);
+  $('#fact_box').prop('disabled', true);
+  isFactCheckInProgress = true;
 
   // Immediately post relevant data to background.js
   bgWorker.postMessage({"contentParse" : contentParse.data, "tags" : contentParse.tags, "url" : contentParse.url, "sourceApiUrl": sourceApiUrl, "sourceQueryParams": sourceQueryParams, "retrieveSourceTextParams": retrieveSourceTextParams});
@@ -283,11 +324,8 @@ function setAnalysisUI() {
   $('#myCanvas').show();
 
   document.getElementById("fact_text").style.color="#000000";
-  document.getElementById("fact_text").innerHTML = "Factoids checked:" +
-  "<span id=\"current-link\" title=\"" + url + "\" style=\"display:block;width:200px;overflow:hidden;text-overflow:ellipsis;font-size:75%;\">" +
-  url + "</span>";
+  document.getElementById("fact_text").textContent = "FactoidL";
 
-  document.getElementById("fact_num").innerHTML = parsedData.length.toLocaleString();
   document.getElementById("links").innerHTML = "<span style=\"border-style: solid;\"><img border=\"0\" alt=\"Google Search\" src=\"search_icon_16x16.png\" width=\"16\" height=\"16\" style=\"vertical-align:-3px;\"> Related</span>";
   document.getElementById("facts").innerHTML = "<span style=\"border-style: solid;\">Factoids <img border=\"0\" alt=\"Google Search\" src=\"fact_icon_16x16.png\" width=\"16\" height=\"16\" style=\"vertical-align:-3px;\"></span>";
 }
@@ -298,6 +336,14 @@ document.addEventListener('DOMContentLoaded', function() {
     checkButton.addEventListener('click', function() {
         startFactCheck();
     });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('fact_box').addEventListener('input', function() {
+    if (!isFactCheckInProgress && this.value.trim()) {
+      document.getElementById('check_button').disabled = false;
+    }
+  });
 });
 
 document.addEventListener('DOMContentLoaded', function() {

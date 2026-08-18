@@ -12,4 +12,4 @@ This file may be updated with more detail on each section at a further time.
 ## Running The Tests
 Most tests are in an HTML file format. For browser extensions, opening the test file in the browser and running FactoidL's fact check should be enough.
 
-For a desktop or webpage FactoidL, copy the local filepath like you would a regular web URL (e.g., "file:///C:/...").
+For a desktop or webpage FactoidL app, copy the page content into the textbox. We're working on adding URLs but understand cross-site security concerns.

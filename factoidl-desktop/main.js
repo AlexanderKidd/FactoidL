@@ -1,38 +1,33 @@
-const electron = require('electron');
 const path = require('path');
-const url = require('url');
-
-// Set ENV
-process.env.NODE_ENV = 'development';
-
-const {app, BrowserWindow, Menu, ipcMain} = electron;
+const {app, BrowserWindow, Menu} = require('electron');
 
 let mainWindow;
-let addWindow;
 
-// Listen for app to be ready
-app.on('ready', function(){
-  // Create new window
+function createMainWindow() {
   mainWindow = new BrowserWindow({
     webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false,
       nodeIntegrationInWorker: true
     }
   });
-  // Load html in window
-  mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'index.html'),
-    protocol: 'file:',
-    slashes: true
-  }));
-  // Quit app when closed
-  mainWindow.on('closed', function(){
-    app.quit();
-  });
 
-  // Build menu from template
-  const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
-  // Insert menu
-  Menu.setApplicationMenu(mainMenu);
+  mainWindow.loadFile(path.join(__dirname, 'index.html'));
+  mainWindow.on('closed', function() { mainWindow = null; });
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(mainMenuTemplate));
+}
+
+app.whenReady().then(function() {
+  createMainWindow();
+  app.on('activate', function() {
+    if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
+  });
+});
+
+app.on('window-all-closed', function() {
+  if (process.platform !== 'darwin') app.quit();
 });
 
 // Create menu template
@@ -57,8 +52,8 @@ if(process.platform == 'darwin'){
   mainMenuTemplate.unshift({});
 }
 
-// Add developer tools option if in dev
-if(process.env.NODE_ENV !== 'production'){
+// Add developer tools option while running from source.
+if (!app.isPackaged) {
   mainMenuTemplate.push({
     label: 'Developer Tools',
     submenu:[

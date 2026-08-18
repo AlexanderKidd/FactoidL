@@ -2,26 +2,18 @@
   "manifest_version": 2,
   "name": "FactoidL (beta)",
   "description": "Checks the accuracy of webpage content based on other web sources.",
-  "version": "2.5",
+  "version": "2.6.1",
 
-  "icons": {  "16":  "factoidL_icon16.png",
-              "48":  "factoidL_icon48.png",
-              "128": "factoidL_icon128.png" },
+  "icons": {  "16":  "FactoidL_Logo_Rounded_icon16_2.0_FINAL.png",
+              "48":  "FactoidL_Logo_Rounded_icon48_2.0_FINAL.png",
+              "128": "FactoidL_Logo_Rounded_icon128_2.0_FINAL.png" },
 
   "background": {
-    "scripts": ["compromise.min.js", "jquery-3.4.1.min.js", "background.js"]
+    "scripts": ["compromise.min.js", "factoidl-common.js", "jquery-3.4.1.min.js", "background.js"]
   },
 
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["jquery-3.4.1.min.js", "content.js"],
-      "run_at": "document_end"
-    }
-  ],
-
   "browser_action": {
-    "default_icon": "icon.png",
+    "default_icon": "FactoidL_Logo_Rounded_icon48_2.0_FINAL.png",
     "default_popup": "popup.html",
     "default_title": "FactoidL"
   },

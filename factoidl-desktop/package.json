@@ -1,24 +1,60 @@
 {
   "name": "factoidl-desktop",
-  "version": "2.5.0",
+  "version": "2.6.1",
   "description": "FactoidL Desktop Application",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/factoidL_icon128.icns --prune=true --out=release-builds",
-    "package-win32": "electron-packager . --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/icons/win/factoidL_icon128.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"FactoidL\"",
-    "package-win64": "electron-packager . --overwrite --asar=true --platform=win32 --arch=x64 --icon=assets/icons/win/factoidL_icon128.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"FactoidL\"",
-    "package-linux": "electron-packager . --overwrite --platform=linux --arch=x64 --icon=assets/icons/png/factoidL_icon128.png --prune=true --out=release-builds"
+    "generate:win-icon": "node tools/generate-windows-icon.js",
+    "dist": "electron-builder",
+    "dist:win": "npm run generate:win-icon && electron-builder --win",
+    "dist:win-dir": "npm run generate:win-icon && electron-builder --win dir && node tools/rename-windows-unpacked.js",
+    "dist:mac": "electron-builder --mac",
+    "dist:linux": "electron-builder --linux"
   },
   "author": "FactoidL",
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "dependencies": {
     "compromise": "^13.11.1",
     "compromise-numbers": "^1.4.0",
-    "compromise-sentences": "^0.3.0",
-    "electron": "^19.0.8"
+    "compromise-sentences": "^0.3.0"
   },
   "devDependencies": {
-    "electron-packager": "^15.5.1"
+    "electron": "^43.4.0",
+    "electron-builder": "^26.15.3",
+    "png-to-ico": "^2.1.8"
+  },
+  "build": {
+    "appId": "com.factoidl.desktop",
+    "productName": "FactoidL",
+    "directories": {
+      "output": "release-builds"
+    },
+    "asar": true,
+    "files": [
+      "**/*",
+      "!release-builds/**"
+    ],
+    "win": {
+      "icon": "assets/icons/win/FactoidL_Logo_Rounded_2.0_FINAL.ico",
+      "target": [
+        "nsis"
+      ]
+    },
+    "mac": {
+      "icon": "assets/icons/mac/FactoidL_Logo_Rounded_2.0_FINAL.icns",
+      "target": [
+        "dmg"
+      ]
+    },
+    "linux": {
+      "icon": "assets/icons/png/FactoidL_Logo_Rounded_2.0_FINAL.png",
+      "target": [
+        "AppImage"
+      ]
+    }
   }
 }

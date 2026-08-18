@@ -16,10 +16,23 @@ var blacklist = ['div[class*="nav"]', '.byline', '.dateline', '.date', '.toc', '
 // Text scrapes based on HTML tags.
 var scrapedText = '';
 
-// A micro plugin for ignoring certain child elements, thanks to: https://stackoverflow.com/questions/11347779/jquery-exclude-children-from-text
-$.fn.ignore = function(sel) {
-  return this.clone().find(sel || ">*").remove().end();
-};
+var blacklistSelector = blacklist.join(',');
+
+// Cloning nodes makes the browser re-resolve external SVG/media references, which trips cross-origin checks on some sites.
+function scrapeVisibleText(element) {
+  var text = '';
+  var walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+
+  while(walker.nextNode()) {
+    var parent = walker.currentNode.parentElement;
+
+    if(parent && !parent.closest(blacklistSelector)) {
+      text += walker.currentNode.nodeValue.trim() + ' ';
+    }
+  }
+
+  return text;
+}
 
 // Start with main header text, since this usually isn't followed by punctuation.
 var headerText = $('h1').text();
@@ -28,10 +41,8 @@ if(headerText) {
 }
 
 // Essentially, take the first level of whitelisted elements and ignore blacklisted, then do the same for the contents of each.
-$('body > :not(' + blacklist.join(',') + ')').each(function() {
-	scrapedText += $(this).contents().ignore(blacklist.join(',')).text().trim();
-
-  scrapedText += ' ';
+$('body > :not(' + blacklistSelector + ')').each(function() {
+  scrapedText += scrapeVisibleText(this).trim() + ' ';
 });
 
 // The page title is usually brief enough for a related article search, otherwise try the first factoid.

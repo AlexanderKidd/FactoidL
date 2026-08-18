@@ -12,14 +12,20 @@ Slide Deck: https://docs.google.com/presentation/d/1sAzJkmWxV7sSBBiUgJMLMSdAferc
 
 ⚠️ **DISCLAIMER: Always use a human and other methods to cross-check!** ⚠️
 
-## What's New In 2.5 (Plato)
-* Options for changing the source API url (Note: still uses <extract> tags for xml source text results.)
+## What's New In 2.6 (Aristotle)
+* Aristotle Strategy: Tighter specification of article/unimportant words and regex of negation. Slight co-reference resolution (2-3 fragments of text apart if original factoid can't resolve itself).
 
-* Each factoid is marked as verified as accurate (✔️) or inaccurate (❌), or unverified (❓).
+* Common algorithm/functionality code is now in factoidl-common.js files.
 
-* Slight boost in algorithm performance, although offset with new verified/unverified checks.
+* Updated visual assets to be based off of a crisper SVG logo.
+
+* Repaired broken and stalling API requests to default source (Wikipedia). Including revising service worker tasks.
+
+* Optimized topic search by weighted term set of page title + all scraped factoids, with fallbacks on first sentence and then page title.
+
+* Added verification bar that shows the amount of verified, verified false, and unverified factoids.
   
-* Various minor code fixes like upgrading dependencies and script security.
+* Various minor code fixes like upgrading dependencies and script security. Upgrade to Manifest V3 for extensions as well as fixed extension functionality between tabs.
 
 ## How To Use
 LIVE DEMO HERE!!! https://alexanderkidd.github.io/
@@ -47,9 +53,9 @@ You can also spread the love on [Bluesky](https://bsky.app/profile/factoidl.bsky
 Alexander Kidd (Lead Dev)
 
 ## Special Thanks To
-* [Compromise.js](https://github.com/spencermountain/compromise) (Awesome all-purpose NLP for js)
+* [Compromise.js](https://github.com/spencermountain/compromise) (Awesome lightweight, all-purpose NLP)
 
-* [Wikipedia](https://wikimediafoundation.org/about/mission/) (Crowd-sourced information!)
+* [Wikipedia](https://wikimediafoundation.org/about/mission/) (Crowd-sourced information! Our default knowledge base.)
 
 * [JQuery](https://jquery.com/) (Who said you didn't need it?)
 

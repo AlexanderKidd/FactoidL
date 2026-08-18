@@ -16,6 +16,7 @@ var factRecord;
 var totalFactoids;
 var keyWords;
 var factPct = -1;
+var isFactCheckInProgress = false;
 
 var pollInterval;
 var buildUIInterval;
@@ -25,6 +26,39 @@ var isFactListVisible = false;
 var loadArcSize = degreesToRadians(45);
 var loadStartAngle = 0;
 var loadInc = 0;
+
+function getFactoidResultCounts() {
+  var counts = { correct: 0, unverified: 0, incorrect: 0 };
+  for (var i = 0; i < (factRecord || []).length; i++) {
+    if (factRecord[i] == '1') counts.correct++;
+    else if (factRecord[i] == '-1') counts.incorrect++;
+    else counts.unverified++;
+  }
+  return counts;
+}
+
+function updateFactoidSummary() {
+  var counts = getFactoidResultCounts();
+  var total = counts.correct + counts.unverified + counts.incorrect;
+  document.getElementById('factoid_correct_count').textContent = counts.correct;
+  document.getElementById('factoid_unverified_count').textContent = counts.unverified;
+  document.getElementById('factoid_incorrect_count').textContent = counts.incorrect;
+  document.getElementById('factoid_correct_segment').style.flexGrow = counts.correct;
+  document.getElementById('factoid_unverified_segment').style.flexGrow = counts.unverified;
+  document.getElementById('factoid_incorrect_segment').style.flexGrow = counts.incorrect;
+  document.getElementById('factoid_summary').style.display = total > 0 ? 'block' : 'none';
+}
+
+function setFactCheckControlsDisabled(disabled) {
+  isFactCheckInProgress = disabled;
+  document.getElementById('check_button').disabled = true;
+  document.getElementById('sourceSettings').classList.toggle('is-disabled', disabled);
+  document.getElementById('source_settings_label').classList.toggle('is-disabled', disabled);
+  document.getElementById('facts').classList.toggle('is-disabled', disabled);
+  ['source_api_box', 'query_for_sources_param_box', 'retrieve_sources_param_box'].forEach(function(id) {
+    document.getElementById(id).disabled = disabled;
+  });
+}
 
 /*
  * Pulls in the results once per popup window load from background.js script.
@@ -37,7 +71,15 @@ function pollFactData() {
     url = bg.url;
     parsedData = bg.factoids;
     factRecord = bg.factRecord;
-    keyWords = bg.pageKeyWords;
+    keyWords = bg.sourceSearchTerms || bg.pageKeyWords;
+    var completed = !!bg.checkComplete;
+
+    if (parsedData && url !== '-1') {
+      setAnalysisUI();
+      setFactCheckControlsDisabled(!completed);
+      $('#links, #facts').toggle(completed);
+      updateFactoidSummary();
+    }
 
     // Default error if data could not be scraped or no data.
     if(bg.scrapedText == "") {
@@ -47,7 +89,7 @@ function pollFactData() {
       $('#factoidl_icon').hide();
       $('#check_button').hide();
       $('#myCanvas').hide();
-      $('#fact_num').hide();
+      $('#factoid_summary').hide();
       $('#links').hide();
       $('#facts').hide();
       document.getElementById("fact_text").style.color="#AD0000";
@@ -55,9 +97,9 @@ function pollFactData() {
     }
     else {
       if(bg.factoids) {
-        if(bg.factoids.length == bg.den) {
+        if(completed && bg.factoids.length == bg.den) {
           totalFactoids = bg.den;
-          factPct = bg.num / bg.den;
+          factPct = getFactoidResultCounts().correct / bg.den;
         }
       }
     }
@@ -76,6 +118,7 @@ function degreesToRadians(degrees) {
  * a percentage of verified factoids to total factoids checked.
  */
 function drawPieChart() {
+  if (!parsedData) return;
   var canvas = document.getElementById("myCanvas");
   var ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -169,6 +212,7 @@ function buildUI() {
 
   // Generate a list of facts so the user knows what was checked and what to disregard.
   facts.onclick = function() {
+    if (isFactCheckInProgress) return false;
     var list = document.createElement('ul');
     $(list).css("list-style", "none");
     $(list).css("padding", "0");
@@ -187,7 +231,7 @@ function buildUI() {
           factBefore = "❌";
         }
         else {
-          factBefore = "❓";
+          factBefore = "?";
         }
 
         if(factRecord[i] == "404") {
@@ -195,7 +239,13 @@ function buildUI() {
           $(factError).css("color", "#AD0000");
         }
 
-        factItem.append(document.createTextNode(factBefore + " "));
+        if (factBefore === "?") {
+          var unverifiedMarker = document.createElement('span');
+          unverifiedMarker.className = 'factoid_unverified_marker';
+          unverifiedMarker.appendChild(document.createTextNode(factBefore + " "));
+          factItem.appendChild(unverifiedMarker);
+        }
+        else factItem.append(document.createTextNode(factBefore + " "));
         factItem.append(factError);
         factItem.append(document.createTextNode(parsedData[i]));
         $(factItem).css("padding", "5px 0px");
@@ -215,13 +265,8 @@ function buildUI() {
 
   var linkSearch = document.getElementById('links');
 
-  if(keyWords) {
-    keyWords = keyWords.replace(/\s/g, "%20");
-    linkSearch.href = "https://www.google.com/search?q=" + keyWords;
-    $('#links').show();
-  }
-  else {
-    $('#links').hide();
+  if (keyWords) {
+    linkSearch.href = "https://www.google.com/search?q=" + encodeURIComponent(keyWords);
   }
 }
 
@@ -233,14 +278,30 @@ function startFactCheck() {
   var sourceApiUrl = document.getElementById('source_api_box').value;
   var sourceQueryParams = document.getElementById('query_for_sources_param_box').value;
   var retrieveSourceTextParams = document.getElementById('retrieve_sources_param_box').value;
+  setFactCheckControlsDisabled(true);
+  $('#links, #facts').hide();
 
   chrome.tabs.query({active:true, lastFocusedWindow:true}, function(tabArray) {
     if(tabArray && tabArray.length > 0) {
+      url = tabArray[0].url;
+      setAnalysisUI();
       chrome.runtime.sendMessage({newCheck: true, url: tabArray[0].url,
         sourceApiUrl: sourceApiUrl, sourceQueryParams: sourceQueryParams, retrieveSourceTextParams: retrieveSourceTextParams},
         function (response) {
-           chrome.tabs.executeScript({file: "jquery-1.11.3.min.js"}, function() {
-             chrome.tabs.executeScript({file: "content.js"});
+           if (chrome.runtime.lastError) {
+             console.error("Firefox newCheck message error:", chrome.runtime.lastError);
+             return;
+           }
+           chrome.tabs.executeScript({file: "jquery-3.4.1.min.js"}, function() {
+             if (chrome.runtime.lastError) {
+               console.error("Firefox jQuery injection error:", chrome.runtime.lastError);
+               return;
+             }
+             chrome.tabs.executeScript({file: "content.js"}, function() {
+               if (chrome.runtime.lastError) {
+                 console.error("Firefox content injection error:", chrome.runtime.lastError);
+               }
+             });
            });
         });
     }
@@ -263,11 +324,10 @@ function setAnalysisUI() {
   $('#myCanvas').show();
 
   document.getElementById("fact_text").style.color="#000000";
-  document.getElementById("fact_text").innerHTML = "Factoids checked at:" +
-  "<span id=\"current-link\" title=\"" + url + "\" style=\"display:block;width:200px;overflow:hidden;text-overflow:ellipsis;font-size:75%;\">" +
-  url + "</span>";
+  document.getElementById("fact_text").textContent = "Factoids checked at:";
+  document.getElementById("checked_url").style.display = 'block';
+  document.getElementById("checked_url").value = url || '';
 
-  document.getElementById("fact_num").innerHTML = parsedData.length.toLocaleString();
   document.getElementById("links").innerHTML = "<img border=\"0\" alt=\"Google Search\" src=\"search_icon_16x16.png\" width=\"16\" height=\"16\" style=\"vertical-align:-3px;\"> Related";
   document.getElementById("facts").innerHTML = "Factoids <img border=\"0\" alt=\"Google Search\" src=\"fact_icon_16x16.png\" width=\"16\" height=\"16\" style=\"vertical-align:-3px;\">";
 }
@@ -306,8 +366,16 @@ window.onload = function displayUI() {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('checked_url').addEventListener('click', function() {
+    this.classList.toggle('expanded');
+    this.rows = this.classList.contains('expanded') ? 4 : 1;
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
   var sourceSettings = document.getElementById('sourceSettings');
   sourceSettings.addEventListener('click', function() {
+    if (isFactCheckInProgress) return;
     $(this).toggleClass('expanded');
     $('#source_api_group').toggleClass('expanded');
     $('#query_for_sources_param_group').toggleClass('expanded');

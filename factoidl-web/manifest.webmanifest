@@ -1,0 +1,30 @@
+{
+  "name": "FactoidL",
+  "short_name": "FactoidL",
+  "description": "Checks the accuracy of content based on other web sources.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#BDC3C7",
+  "theme_color": "#4ED25E",
+  "icons": [
+    {
+      "src": "FactoidL_Logo_Rounded_icon192_2.0_FINAL.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "FactoidL_Logo_Rounded_2.0_FINAL.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "FactoidL_Logo_Rounded_2.0_FINAL.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
