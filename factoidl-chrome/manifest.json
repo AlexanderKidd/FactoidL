@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "FactoidL (beta)",
+  "name": "FactoidL",
   "description": "Checks the accuracy of webpage content based on other web sources.",
   "version": "2.6.1",
 
