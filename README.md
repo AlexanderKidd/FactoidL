@@ -33,7 +33,7 @@ LIVE DEMO HERE!!! https://alexanderkidd.github.io/
 Otherwise, the easiest way to use FactoidL is to add the extension:
 * [Chrome Extension](https://chrome.google.com/webstore/detail/factoidl-beta/kilmdgadjedfbopcfbffaeodhamgiadp)
 
-* [Firefox Extension](https://addons.mozilla.org/en-US/firefox/addon/factoidl-beta/?src=search)
+* [Firefox Extension](https://addons.mozilla.org/addon/factoidl/)
 
 While not all browsers are supported yet, most major browsers have similar extension APIs.
 Usually you can install unpacked extensions by following a guide like this: https://support.google.com/chrome/a/answer/2714278?hl=en
