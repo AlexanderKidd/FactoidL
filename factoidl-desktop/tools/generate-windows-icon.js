@@ -8,6 +8,7 @@ const output = path.join(__dirname, '..', 'assets', 'icons', 'win', 'FactoidL_Lo
 pngToIco([source], {
   sizes: [16, 32, 48, 64, 128, 256]
 }).then(function(icon) {
+  fs.mkdirSync(path.dirname(output), { recursive: true });
   fs.writeFileSync(output, icon);
   console.log('Generated ' + output);
 }).catch(function(error) {

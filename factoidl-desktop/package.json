@@ -7,8 +7,7 @@
     "start": "electron .",
     "generate:win-icon": "node tools/generate-windows-icon.js",
     "dist": "electron-builder",
-    "dist:win": "npm run generate:win-icon && electron-builder --win",
-    "dist:win-dir": "npm run generate:win-icon && electron-builder --win dir && node tools/rename-windows-unpacked.js",
+    "dist:win": "npm run generate:win-icon && electron-builder --win --x64 && node tools/rename-windows-unpacked.js",
     "dist:mac": "electron-builder --mac",
     "dist:linux": "electron-builder --linux"
   },
@@ -41,7 +40,7 @@
     "win": {
       "icon": "assets/icons/win/FactoidL_Logo_Rounded_2.0_FINAL.ico",
       "target": [
-        "nsis"
+        "dir"
       ]
     },
     "mac": {
