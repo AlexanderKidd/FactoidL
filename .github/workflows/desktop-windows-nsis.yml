@@ -29,8 +29,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate Windows icon
+        run: npm run generate:win-icon
+
       - name: Build unsigned installer
-        run: npm run dist:win -- --x64
+        run: npx electron-builder --win --x64
 
       - name: List build output
         run: dir release-builds
