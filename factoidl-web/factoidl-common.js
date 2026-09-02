@@ -87,6 +87,39 @@
     return scrapedText.replace(/\n|\s{2,}/g, ' ').match(/[A-Z0-9][^.?!]{10,2000}[.?!\n]/g);
   }
 
+  function normalizeApiUrl(baseUrl, params) {
+    if (params.indexOf('?') === 0 || params.indexOf('&') === 0) {
+      params = params.slice(1);
+    }
+    if (baseUrl.slice(-1) !== '?' && baseUrl.slice(-1) !== '&') {
+      baseUrl += baseUrl.indexOf('?') === -1 ? '?' : '&';
+    }
+    return baseUrl + params;
+  }
+
+  function fetchWithTimeout(requestUrl, options, timeoutMs) {
+    timeoutMs = timeoutMs || 15000;
+    return new Promise(function(resolve, reject) {
+      var timedOut = false;
+      var timer = setTimeout(function() {
+        timedOut = true;
+        reject(new Error('Fetch timeout: ' + requestUrl));
+      }, timeoutMs);
+
+      fetch(requestUrl, options)
+        .then(function(response) {
+          if (timedOut) return;
+          clearTimeout(timer);
+          resolve(response);
+        })
+        .catch(function(err) {
+          if (timedOut) return;
+          clearTimeout(timer);
+          reject(err);
+        });
+    });
+  }
+
   function queryForSources(factoid, index, callback) {
     var factoidKeywords = getKeywords(factoid);
     if (!factoidKeywords || factoidKeywords.length === 0) factoidKeywords = getKeywords(pageKeyWords);
