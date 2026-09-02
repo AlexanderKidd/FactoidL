@@ -32,6 +32,7 @@ var url = "-1"; // Store the url of the page being processed.
 var alreadyChecking = false; // Track whether this url is already checked or it is being checked.
 var sourceSearchTerms = ''; // Cumulative terms used to select shared source pages.
 var checkComplete = false;
+var retriedFactoidIndices = {}; // Indices that already had one per-factoid fallback lookup.
 
 // Spin up workers to help with factoid comparison.
 var worker1 = new Worker('verifyWorker.js');
@@ -41,6 +42,12 @@ var worker3 = new Worker('verifyWorker.js');
 // Utility functions are loaded from factoidl-common.js
 
 function recordWorkerResult(returnedData, index) {
+  if (returnedData == 0 && !retriedFactoidIndices[index] && factoids && factoids[index] !== undefined && hasClearSearchTerm(factoids[index])) {
+    retriedFactoidIndices[index] = true;
+    retryFactoidWithOwnSource(factoids[index], index);
+    return;
+  }
+
   recordResults(returnedData, index);
   if (factoids && den >= factoids.length) {
     checkComplete = true;
@@ -81,6 +88,8 @@ self.addEventListener('message',
        num = 0;
        den = 0;
        checkComplete = false;
+       retriedFactoidIndices = {};
+       resetFactoidRetryQueue();
        scrapedText = message.data.contentParse;
        pageKeyWords = message.data.tags;
       sourceSearchTerms = '';

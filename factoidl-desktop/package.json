@@ -1,6 +1,6 @@
 {
   "name": "factoidl-desktop",
-  "version": "2.6.1",
+  "version": "2.6.2",
   "description": "FactoidL Desktop Application",
   "main": "main.js",
   "scripts": {

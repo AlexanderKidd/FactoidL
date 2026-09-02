@@ -29,6 +29,9 @@ var url = "-1"; // Store the url of the page being processed.
 var alreadyChecking = false; // Track whether this url is already checked or it is being checked.
 var sourceSearchTerms = ''; // Cumulative terms used to select shared source pages.
 var checkComplete = false;
+var sourceTextLength = 0;
+var sourceError = '';
+var retriedFactoidIndices = {}; // Indices that already had one per-factoid fallback lookup.
 
 // Spin up workers to help with factoid comparison.
 var worker1 = new Worker('verifyWorker.js');
@@ -41,6 +44,12 @@ var worker3 = new Worker('verifyWorker.js');
  * Records and increments verified factoids and total factoids.
  */
 var recordResults = function(returned_data, index) {
+  if (returned_data == 0 && !retriedFactoidIndices[index] && factoids && factoids[index] !== undefined && hasClearSearchTerm(factoids[index])) {
+    retriedFactoidIndices[index] = true;
+    retryFactoidWithOwnSource(factoids[index], index);
+    return;
+  }
+
   if(returned_data == 1) {
     factRecord[index] = '1';
     num++;
@@ -72,6 +81,12 @@ worker3.addEventListener('message', function(e) {
   recordResults(e.data.isVerified, e.data.index);
 }, false);
 
+[worker1, worker2, worker3].forEach(function(worker) {
+  worker.addEventListener('error', function(error) {
+    console.error('FactoidL verification worker failed:', error);
+  });
+});
+
 /*
  * Listens for the content.js scrape of textual data.
  */
@@ -85,12 +100,18 @@ chrome.runtime.onMessage.addListener(
       sourceQueryParams = request.sourceQueryParams;
       retrieveSourceTextParams = request.retrieveSourceTextParams;
       sourceSearchTerms = '';
+      sourceTextLength = 0;
+      sourceError = '';
+      retriedFactoidIndices = {};
+      resetFactoidRetryQueue();
     }
     else {
       if(request.url == url && !alreadyChecking) {
         num = 0;
         den = 0;
         checkComplete = false;
+        retriedFactoidIndices = {};
+        resetFactoidRetryQueue();
         scrapedText = request.data;
         pageKeyWords = request.tags;
         factoids = sentenceParse();

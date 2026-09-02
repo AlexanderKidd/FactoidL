@@ -73,6 +73,11 @@ function pollFactData() {
     factRecord = bg.factRecord;
     keyWords = bg.sourceSearchTerms || bg.pageKeyWords;
     var completed = !!bg.checkComplete;
+    var sourceError = document.getElementById('source_error');
+    if (sourceError) {
+      sourceError.textContent = bg.sourceError || '';
+      sourceError.style.display = bg.sourceError ? 'block' : 'none';
+    }
 
     if (parsedData && url !== '-1') {
       setAnalysisUI();

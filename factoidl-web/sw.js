@@ -5,7 +5,7 @@
  * lookups (e.g., Wikipedia) always go straight to the network.
  */
 
-var CACHE_NAME = 'factoidl-2.6.1';
+var CACHE_NAME = 'factoidl-2.6.2';
 
 var APP_SHELL = [
   './',

@@ -33,6 +33,8 @@ var checkComplete = false; // Track whether the current fact-check has finished.
 var sourceError = ''; // User-visible error from shared source discovery.
 var checkedTabId = null; // Tab that owns the current or saved result.
 var sourceSearchTerms = ''; // Cumulative terms used to select shared source pages.
+var sourceTextLength = 0;
+var retriedFactoidIndices = {}; // Indices that already had one per-factoid fallback lookup.
 
 function getStatusData() {
   return {
@@ -44,6 +46,7 @@ function getStatusData() {
     factRecord: factRecord,
     pageKeyWords: pageKeyWords,
     sourceSearchTerms: sourceSearchTerms,
+    sourceTextLength: sourceTextLength,
     num: num,
     den: den,
     scrapedText: scrapedText,
@@ -223,6 +226,12 @@ else {
  * Records and increments verified factoids and total factoids.
  */
 var recordResults = function(returned_data, index) {
+  if (returned_data == 0 && !retriedFactoidIndices[index] && factoids && factoids[index] !== undefined && hasClearSearchTerm(factoids[index])) {
+    retriedFactoidIndices[index] = true;
+    retryFactoidWithOwnSource(factoids[index], index);
+    return;
+  }
+
   if(returned_data == 1) {
     factRecord[index] = '1';
     num++;
@@ -257,6 +266,13 @@ worker2.addEventListener('message', function(e) {
 worker3.addEventListener('message', function(e) {
   recordResults(e.data.isVerified, e.data.index);
 }, false);
+
+[worker1, worker2, worker3].forEach(function(worker) {
+  worker.addEventListener('error', function(error) {
+    sourceError = 'Fact verification worker failed.';
+    console.error('FactoidL verification worker failed:', error);
+  });
+});
 
 /*
  * Listens for the content.js scrape of textual data.
@@ -294,10 +310,13 @@ chrome.runtime.onMessage.addListener(
       scrapedText = undefined;
       pageKeyWords = undefined;
       sourceSearchTerms = '';
+      sourceTextLength = 0;
       factoids = [];
       factRecord = [];
       num = 0;
       den = 0;
+      retriedFactoidIndices = {};
+      resetFactoidRetryQueue();
       if (chrome.storage && chrome.storage.session) {
         chrome.storage.session.remove('factoidlCompletedCheck');
       }
@@ -313,6 +332,8 @@ chrome.runtime.onMessage.addListener(
       den = 0;
       checkComplete = false;
       sourceError = '';
+      retriedFactoidIndices = {};
+      resetFactoidRetryQueue();
       scrapedText = request.data;
       pageKeyWords = request.tags;
       factoids = sentenceParse();

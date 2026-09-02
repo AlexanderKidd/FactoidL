@@ -213,10 +213,13 @@
     }).slice(0, 6).join(' ');
   }
 
-  function findSharedSourceTitles(searchTerms, title) {
+  function findSharedSourceTitles(searchTerms, title, content) {
+    var contentTopics = getKeywords(content || '');
+    var primaryContentTopic = contentTopics[0] || '';
     var titleTopics = getKeywords(title || '');
     var primaryTopic = titleTopics[0] || '';
-    var candidates = [primaryTopic, title, searchTerms.split(' ').slice(0, 2).join(' '), searchTerms].filter(function(candidate, index, allCandidates) {
+    // The factoids' own subject should outrank the page title, which can be generic or unrelated (e.g. site branding).
+    var candidates = [primaryContentTopic, primaryTopic, title, searchTerms.split(' ').slice(0, 2).join(' '), searchTerms].filter(function(candidate, index, allCandidates) {
       return candidate && allCandidates.indexOf(candidate) === index;
     });
     function tryCandidate(index) {
@@ -236,11 +239,107 @@
     return tryCandidate(0);
   }
 
+  // Words that are commonly capitalized but aren't useful, distinctive Wikipedia search terms.
+  var COMMON_CAPITALIZED_WORDS = /^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|January|February|March|April|May|June|July|August|September|October|November|December|I)$/;
+
+  // Only retry factoids that contain a distinctive proper noun (e.g. "North Korea"), not just any unverified factoid.
+  function hasClearSearchTerm(factoid) {
+    if (typeof nlp === 'function') {
+      try {
+        if (nlp(factoid).topics().data().length > 0) return true;
+      }
+      catch (err) { /* fall through to capitalization check */ }
+    }
+
+    var words = factoid.trim().split(/\s+/);
+    for (var i = 1; i < words.length; i++) {
+      var word = words[i].replace(/[^A-Za-z]/g, '');
+      if (word.length > 1 && /^[A-Z][a-z]+$/.test(word) && !COMMON_CAPITALIZED_WORDS.test(word)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function dispatchFactoidToWorker(factoid, index, sourceText, sourceTitles) {
+    var worker = index % 2 == 0 && index % 3 != 0 ? worker1 : index % 2 != 0 && index % 3 == 0 ? worker2 : worker3;
+    worker.postMessage({ factoid: factoid, index: index, text: sourceText, pageWideResults: '', sourceTitles: sourceTitles || '' });
+  }
+
   function compareFactoidsWithSharedSources(factoids, sourceText, sourceTitles) {
     for (var i = 0; i < factoids.length; i++) {
-      var worker = i % 2 == 0 && i % 3 != 0 ? worker1 : i % 2 != 0 && i % 3 == 0 ? worker2 : worker3;
-      worker.postMessage({ factoid: factoids[i], index: i, text: sourceText, pageWideResults: '', sourceTitles: sourceTitles || '' });
+      dispatchFactoidToWorker(factoids[i], i, sourceText, sourceTitles);
     }
+  }
+
+  // Cap simultaneous AND total fallback lookups so large pages can't flood Wikipedia's API or balloon runtime.
+  var MAX_CONCURRENT_FACTOID_RETRIES = 3;
+  var MAX_TOTAL_FACTOID_RETRIES = 20;
+  var activeFactoidRetries = 0;
+  var startedFactoidRetries = 0;
+  var pendingFactoidRetries = [];
+
+  function runNextFactoidRetry() {
+    if (activeFactoidRetries >= MAX_CONCURRENT_FACTOID_RETRIES || pendingFactoidRetries.length === 0) return;
+    var job = pendingFactoidRetries.shift();
+    activeFactoidRetries++;
+    performFactoidRetry(job.factoid, job.index).then(function() {
+      activeFactoidRetries--;
+      runNextFactoidRetry();
+    });
+  }
+
+  // Only unverified factoids get a second, targeted lookup, queued and capped so this stays fast on long articles.
+  function retryFactoidWithOwnSource(factoid, index) {
+    if (startedFactoidRetries >= MAX_TOTAL_FACTOID_RETRIES) {
+      dispatchFactoidToWorker(factoid, index, '', '');
+      return;
+    }
+    startedFactoidRetries++;
+    pendingFactoidRetries.push({ factoid: factoid, index: index });
+    runNextFactoidRetry();
+  }
+
+  function resetFactoidRetryQueue() {
+    pendingFactoidRetries = [];
+    activeFactoidRetries = 0;
+    startedFactoidRetries = 0;
+  }
+
+  // Wikipedia's full-text search matches an isolated sentence far more reliably than title-prefix opensearch.
+  function findFallbackSourceForFactoid(factoid) {
+    var query = getKeywords(factoid)[0] || factoid.split(' ').slice(0, 6).join(' ');
+    var isWikipediaApi = sourceApiUrl && sourceApiUrl.indexOf('w/api.php') !== -1;
+
+    var titleLookup = isWikipediaApi
+      ? fetchWithTimeout(normalizeApiUrl(sourceApiUrl, 'action=query&list=search&format=json&origin=*&srlimit=1&srsearch=') + encodeURIComponent(query), null, 8000)
+          .then(function(response) {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+          })
+          .then(function(json) {
+            var title = json.query && json.query.search && json.query.search[0] && json.query.search[0].title;
+            if (!title) throw new Error('No fallback Wikipedia sources found');
+            return [title];
+          })
+      : findSharedSourceTitles(query, factoid, factoid);
+
+    return titleLookup.then(function(sourceTitles) {
+      return getSources(sourceTitles[0], '', -1).then(function(sourceText) {
+        return { sourceText: sourceText || '', sourceTitle: sourceTitles[0] };
+      });
+    });
+  }
+
+  function performFactoidRetry(factoid, index) {
+    return findFallbackSourceForFactoid(factoid)
+      .then(function(result) {
+        dispatchFactoidToWorker(factoid, index, result.sourceText, result.sourceTitle);
+      })
+      .catch(function(err) {
+        console.error('Error: retryFactoidWithOwnSource() failed for factoid {' + factoid + '}. Error: ' + err);
+        dispatchFactoidToWorker(factoid, index, '', '');
+      });
   }
 
   function verifyFactoids(factoids) {
@@ -250,17 +349,20 @@
       compareFactoidsWithSharedSources(factoids, '', '');
       return;
     }
-    findSharedSourceTitles(sourceSearchTerms, pageKeyWords)
+    findSharedSourceTitles(sourceSearchTerms, pageKeyWords, factoids.join(' '))
       .then(function(sourceTitles) {
         return Promise.all(sourceTitles.map(function(sourceTitle) { return getSources(sourceTitle, '', -1); }))
           .then(function(sourceTexts) { return { sourceTexts: sourceTexts, sourceTitles: sourceTitles }; });
       })
       .then(function(result) {
         pageWideResults = result.sourceTexts.filter(Boolean).join(' ');
+        sourceTextLength = pageWideResults.length;
+        sourceError = pageWideResults ? '' : 'Wikipedia returned no readable source text.';
         compareFactoidsWithSharedSources(factoids, pageWideResults, result.sourceTitles.join(' '));
       })
       .catch(function(err) {
         console.error('Error: shared source lookup failed. Error: ' + err);
+        sourceError = 'Could not find Wikipedia source pages for this check.';
         compareFactoidsWithSharedSources(factoids, '', '');
       });
   }
@@ -273,6 +375,9 @@
   root.sentenceParse = sentenceParse;
   root.getSharedSearchTerms = getSharedSearchTerms;
   root.findSharedSourceTitles = findSharedSourceTitles;
+  root.retryFactoidWithOwnSource = retryFactoidWithOwnSource;
+  root.resetFactoidRetryQueue = resetFactoidRetryQueue;
+  root.hasClearSearchTerm = hasClearSearchTerm;
   root.verifyFactoids = verifyFactoids;
 
   if (typeof module !== 'undefined' && module.exports) {
@@ -285,6 +390,9 @@
       sentenceParse: sentenceParse,
       getSharedSearchTerms: getSharedSearchTerms,
       findSharedSourceTitles: findSharedSourceTitles,
+      retryFactoidWithOwnSource: retryFactoidWithOwnSource,
+      resetFactoidRetryQueue: resetFactoidRetryQueue,
+      hasClearSearchTerm: hasClearSearchTerm,
       verifyFactoids: verifyFactoids
     };
   }
