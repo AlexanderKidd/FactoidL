@@ -28,7 +28,7 @@ Slide Deck: https://docs.google.com/presentation/d/1sAzJkmWxV7sSBBiUgJMLMSdAferc
 * Various minor code fixes like upgrading dependencies and script security. Upgrade to Manifest V3 for extensions as well as fixed extension functionality between tabs.
 
 ## How To Use
-LIVE DEMO HERE!!! https://alexanderkidd.github.io/
+**LIVE DEMO HERE!!!** https://alexanderkidd.github.io/
 
 Otherwise, the easiest way to use FactoidL is to add the extension:
 * [Chrome Extension](https://chrome.google.com/webstore/detail/factoidl-beta/kilmdgadjedfbopcfbffaeodhamgiadp)
